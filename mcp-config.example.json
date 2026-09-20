@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "graft": {
+      "command": "graft",
+      "args": ["mcp"],
+      "description": "Codebase AST, symbol definition cruxes, and blast-radius call graphs"
+    },
+    "mnemosyne": {
+      "command": "mnemosyne",
+      "args": ["mcp"],
+      "description": "Persistent project memory, decisions graph, and cross-session triples"
+    },
+    "context-mode": {
+      "command": "npx",
+      "args": ["-y", "context-mode"],
+      "description": "Virtualizes large tool command outputs, saving up to 98% context window tokens"
+    },
+    "code-review": {
+      "command": "npx",
+      "args": ["-y", "@alibaba-group/open-code-review", "mcp"],
+      "description": "Alibaba deterministic and LLM-assisted line-level PR/git diff review"
+    }
+  }
+}

@@ -4,6 +4,24 @@
 
 Bob is a forensic audit supervisor, token optimization pipeline, and anti-regression engine for AI-assisted coding agents (Cursor, Claude Code, Codex, Windsurf, OpenCode).
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node Version](https://img.shields.io/badge/Node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
+[![Cursor Ready](https://img.shields.io/badge/Cursor-Agent%20Skill-blueviolet.svg)](https://docs.cursor.com)
+[![Tokens Saved](https://img.shields.io/badge/Tokens%20Saved-90%25--93%25-success.svg)](#token-economics-9093-net-token-reduction)
+
+---
+
+## Table of Contents
+1. [The Problem](#the-core-problems-bob-solves)
+2. [Architecture & Topology](#architecture--neural-wiring-topology)
+3. [The 4-Tier Large Repository Triage](#the-4-tier-large-repository-triage-under-1500-tokens)
+4. [Token Economics: 90%–93% Savings](#token-economics-9093-net-token-reduction)
+5. [Installation & Setup](#installation--setup)
+6. [MCP Configuration](#mcp-configuration)
+7. [How to Use Bob](#how-to-use-bob)
+8. [Repository Structure](#repository-structure)
+9. [Contributing & License](#contributing--license)
+
 ---
 
 ## The Core Problems Bob Solves
@@ -18,6 +36,8 @@ Bob is a forensic audit supervisor, token optimization pipeline, and anti-regres
 ## Architecture & Neural-Wiring Topology
 
 Bob integrates 6 specialized, non-interfering tool combos into a unified routing architecture:
+
+![Bob Wire Graph](diagrams/01_switchboard_wire_graph.png)
 
 ```
 =======================================================================================================================
@@ -53,6 +73,14 @@ Bob integrates 6 specialized, non-interfering tool combos into a unified routing
 =======================================================================================================================
 ```
 
+### Circular Ring & Cross-Chassis Anti-Regression Wires
+
+![Circular Ring Crossconnect](diagrams/02_circular_ring_crossconnect.png)
+
+* **`COMBO-1` $\longleftrightarrow$ `COMBO-4` (AST Context $\longleftrightarrow$ Multi-Stage Audit)**: Sends real-time symbol call graphs from `Graft` directly to `open-code-review` and `ponytail-review`, calculating the caller blast radius before code edits to prevent regressions.
+* **`COMBO-5` $\longleftrightarrow$ `COMBO-6` (Worktree Isolation $\longleftrightarrow$ Polyglot Platform)**: `worktrunk` spins up isolated git worktrees so build servers and desktop automation execute without dirty-state file clashing.
+* **`COMBO-3` $\longleftrightarrow$ `COMBO-4` (Locked Spec $\longleftrightarrow$ Invariant Acceptance Gate)**: `requirements-manager` locks non-negotiable invariants, and `acceptance-review` rejects changes if unrelated code is modified.
+
 ---
 
 ## The 4-Tier Large Repository Triage (Under 1,500 Tokens)
@@ -79,14 +107,91 @@ In large codebases (thousands of files), Bob does not run repository-wide `grep`
 
 ---
 
-## Invocation
+## Installation & Setup
 
-You can trigger Bob anytime in your agent chat by saying:
-- `"bob"` or `"/bob"`
-- `"bob, I asked earlier to do a set of changes but it didn't execute properly"`
-- `"bob audit"`
+### Prerequisites
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+- Git >= 2.30.0
+- (Optional but recommended) Rust/Cargo for `rtk` and `worktrunk`
 
-Bob immediately stops speculative code editing, harvests the prior intent, audits git diffs against reality, reports fulfilled vs. omitted vs. regressed items, and issues a strict, numbered correction order.
+### 1-Step Automated Installer
+Clone the repository and run the automated installation script:
+
+```bash
+git clone https://github.com/your-username/bob.git
+cd bob
+chmod +x ./scripts/install.sh ./scripts/check-mcp.sh
+./scripts/install.sh
+```
+
+This will automatically:
+1. Copy `skills/bob/SKILL.md` to `~/.cursor/skills/bob/SKILL.md`.
+2. Copy `rules/bob.mdc` to `~/.cursor/rules/bob.mdc`.
+3. Install `context-mode` and `@alibaba-group/open-code-review` globally.
+4. Install `rtk` via Cargo (if Cargo is present).
+
+### Health Check Diagnostic
+Verify your tool connectivity at any time:
+```bash
+./scripts/check-mcp.sh
+```
+
+---
+
+## MCP Configuration
+
+Bob orchestrates the following MCP servers. Add them to your Cursor (`Settings` $\rightarrow$ `Features` $\rightarrow$ `MCP`) or Claude Desktop config (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "graft": {
+      "command": "graft",
+      "args": ["mcp"],
+      "description": "Codebase AST, symbol definition cruxes, and blast-radius call graphs"
+    },
+    "mnemosyne": {
+      "command": "mnemosyne",
+      "args": ["mcp"],
+      "description": "Persistent project memory, decisions graph, and cross-session triples"
+    },
+    "context-mode": {
+      "command": "npx",
+      "args": ["-y", "context-mode"],
+      "description": "Virtualizes large tool command outputs, saving up to 98% context window tokens"
+    },
+    "code-review": {
+      "command": "npx",
+      "args": ["-y", "@alibaba-group/open-code-review", "mcp"],
+      "description": "Alibaba deterministic and LLM-assisted line-level PR/git diff review"
+    }
+  }
+}
+```
+
+---
+
+## How to Use Bob
+
+Bob is always on in your environment. You can call Bob directly in chat whenever an implementation goes sideways or needs an audit:
+
+* **Audit a failed instruction**:
+  > *"bob, I asked earlier to do a set of changes but it didn't execute properly"*
+* **Audit against regressions**:
+  > *"bob, check what broke in the last commit and why the test failed"*
+* **Direct invariant check**:
+  > *"bob audit"*
+
+### What Bob Executes Under the Hood:
+1. **Reconstructs Intent**: Extracts the unvarnished initial contract from conversation history and `.cursor/REQUIREMENTS.md`.
+2. **Code Reality Check**: Runs `git status`, `git log -n 5 --stat`, and `git diff HEAD~1` to see what code was actually changed.
+3. **Forensic Blame & Gap Analysis**: Returns a structured report with:
+   * **Fulfilled**: What was done right.
+   * **Omitted / Shallow**: What was skipped, stubbed, or left incomplete.
+   * **Regressions**: Unintended side-effects and broken invariants.
+   * **Root Cause**: Why the failure happened.
+4. **Correction Order**: Issues an actionable numbered action list (`FIX-001`, `FIX-002`) with locked invariants before any code is modified.
 
 ---
 
@@ -94,16 +199,30 @@ Bob immediately stops speculative code editing, harvests the prior intent, audit
 
 ```
 bob/
-├── README.md                          # Architecture and operational manual
+├── README.md                          # Full architectural manual & token economics
+├── CONTRIBUTING.md                    # Guidelines for contributing to Bob
+├── LICENSE                            # MIT License
+├── package.json                       # Project metadata & npm scripts
+├── mcp-config.example.json            # Reference MCP server configurations
+├── scripts/
+│   ├── install.sh                     # Automated 1-step installer
+│   └── check-mcp.sh                   # MCP & driver connectivity diagnostic tool
+├── bin/
+│   └── bob-audit                      # Standalone CLI forensic audit script
 ├── skills/
 │   └── bob/
-│       └── SKILL.md                   # The core forensic audit & correction skill
+│       └── SKILL.md                   # Core forensic audit & correction skill
 ├── rules/
 │   └── bob.mdc                        # Cursor always-on trigger rule
-├── diagrams/                          # Telecommunications and circular ring blueprints
-│   ├── 01_switchboard_wire_graph.png
-│   └── 02_circular_ring_crossconnect.png
-├── bin/
-│   └── bob-audit                      # Standalone CLI audit helper
-└── package.json
+└── diagrams/
+    ├── 01_switchboard_wire_graph.png  # Switchboard telecommunications wire graph
+    └── 02_circular_ring_crossconnect.png # Circular cross-connect ring diagram
 ```
+
+---
+
+## Contributing & License
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup and pull request guidelines.
+
+Distributed under the [MIT License](LICENSE).
