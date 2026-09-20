@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Bob: Standalone Local Git & Invariant Forensic Auditor
+# ==============================================================================
+set -euo pipefail
+
+echo "=================================================================="
+echo "  BOB: FORENSIC AUDIT & CODE REALITY CHECK"
+echo "=================================================================="
+echo ""
+
+# 1. Git Status & Dirty Edits
+echo "[1/4] Checking Working Tree Dirty State..."
+if git status --porcelain | grep -q .; then
+    echo "  [!] Uncommitted or untracked changes detected:"
+    git status -s
+else
+    echo "  [✔] Working tree is clean."
+fi
+echo ""
+
+# 2. Last 3 commits footprint
+echo "[2/4] Recent Commit Footprint (Last 3 commits)..."
+git log -n 3 --oneline --stat || true
+echo ""
+
+# 3. Invariants & Rules Check
+echo "[3/4] Checking Active Locked Invariants & Rules..."
+if [ -d ".cursor/rules" ]; then
+    echo "  Found project rules in .cursor/rules:"
+    ls -1 .cursor/rules/*.mdc 2>/dev/null || echo "    None"
+elif [ -d "~/.cursor/rules" ]; then
+    echo "  Found global rules in ~/.cursor/rules"
+else
+    echo "  [i] No active .cursor/rules detected in current working directory."
+fi
+echo ""
+
+# 4. Requirements & Handoff Health
+echo "[4/4] Verifying Continuity & Contract Files..."
+if [ -f ".cursor/REQUIREMENTS.md" ]; then
+    echo "  [✔] .cursor/REQUIREMENTS.md is present."
+else
+    echo "  [!] .cursor/REQUIREMENTS.md is MISSING. Contract cannot be audited."
+fi
+
+if [ -f ".cursor/SESSION_HANDOFF.md" ]; then
+    echo "  [✔] .cursor/SESSION_HANDOFF.md is present."
+else
+    echo "  [!] .cursor/SESSION_HANDOFF.md is MISSING."
+fi
+
+echo ""
+echo "=================================================================="
+echo "  Bob Audit Ready. For full semantic analysis, invoke 'bob' in IDE."
+echo "=================================================================="

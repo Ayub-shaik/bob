@@ -1,0 +1,17 @@
+---
+description: Activates the Bob forensic audit and correction protocol whenever user mentions bob or reports failed/shallow/regressed executions
+alwaysApply: true
+---
+
+# Bob Audit & Correction Trigger
+
+Whenever the user says **`bob`**, **`/bob`**, or indicates that a prior instruction was **not executed properly, half-done, or worsened other code**:
+
+1. **Activate the `bob` skill immediately** (`~/.cursor/skills/bob/SKILL.md`).
+2. **Halt normal code generation**. Do not jump into writing speculative code.
+3. **Execute the 4-step forensic procedure**:
+   - **Step 1**: Reconstruct the original instruction from chat history, `.cursor/REQUIREMENTS.md`, and `.cursor/SESSION_HANDOFF.md`.
+   - **Step 1.5**: Use Graft and call graphs to map the blast radius without reading entire files.
+   - **Step 2**: Inspect the actual repository delta (`git diff`, `git log -n 5 --stat`) to see what was actually altered versus what was claimed.
+   - **Step 3**: Produce the Forensic Gap Analysis (Fulfilled vs. Omitted vs. Regressed).
+   - **Step 4**: Emit a concrete, numbered Correction Order (`FIX-001`, `FIX-002`) and enforce invariant protection before applying any fixes.

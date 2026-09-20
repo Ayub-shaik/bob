@@ -1,0 +1,24 @@
+{
+  "name": "bob",
+  "version": "1.0.0",
+  "description": "Forensic audit supervisor, anti-regression engine, and token optimization pipeline for AI coding agents",
+  "main": "index.js",
+  "bin": {
+    "bob": "./bin/bob-audit"
+  },
+  "scripts": {
+    "audit": "./bin/bob-audit",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "keywords": [
+    "cursor",
+    "agent-skills",
+    "code-review",
+    "anti-regression",
+    "audit",
+    "token-optimization",
+    "mcp"
+  ],
+  "author": "shaik",
+  "license": "MIT"
+}
