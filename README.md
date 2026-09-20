@@ -28,8 +28,9 @@ Bob is a forensic audit supervisor, token optimization pipeline, and anti-regres
 
 1. **The Rework & Regression Trap**: When an AI agent modifies code to implement or fix feature A, it frequently worsens features B, C, and D because it has no awareness of caller blast radiuses and no invariant protection.
 2. **Context Window Exhaustion**: Agents brute-force read 1,000+ line files repeatedly across turns, burning 80,000+ tokens and causing hallucination loops.
-3. **Optimistic False "Done" Claims**: Agents declare success after shallow implementations (placeholders, stubs, broken invariants) without proof.
+3. **Optimistic False "Done" Claims & Verification Complacency**: Agents declare success after shallow implementations (placeholders, stubs, broken invariants) or declare "no changes needed" simply because functions exist and pure math unit tests pass, ignoring real-world browser reflows and gesture physics.
 4. **Chat Amnesia & Unstructured Instructions**: Users say *"I asked earlier to do a set of changes but it didn't execute properly"*, and normal agents have no forensic mechanism to audit prior instructions against git reality.
+5. **Layout-Scroll Feedback Loops**: Agents mutate DOM dimensions or negative margins inside scroll event listeners without realizing that shrinking layout changes document scroll positions, triggering fatal multi-hertz vibration/jumping loops.
 
 ---
 
@@ -91,6 +92,7 @@ In large codebases (thousands of files), Bob does not run repository-wide `grep`
 2. **Needle Extraction (`graft_find_code`)**: Extracts only the $\le 8$-line crux definition of the target function.
 3. **Blast Radius & Call Graph (`graft_trace_calls`)**: Maps callers and callees in both directions before a single character is edited.
 4. **Invariant & Decision Recall (`mnemosyne_recall` + `.cursor/rules/*.mdc`)**: Verifies locked rules and past architectural decisions.
+5. **Causal Feedback-Loop Tracing**: Dissects how DOM mutations (height, margins) alter scroll offsets and whether inner scroll containers (`overflow-y-auto`) hijack window gestures. Banned from relying on headless mock unit tests as behavioral proof.
 
 ---
 
