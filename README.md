@@ -82,6 +82,23 @@ Bob integrates 6 specialized, non-interfering tool combos into a unified routing
 * **`COMBO-5` $\longleftrightarrow$ `COMBO-6` (Worktree Isolation $\longleftrightarrow$ Polyglot Platform)**: `worktrunk` spins up isolated git worktrees so build servers and desktop automation execute without dirty-state file clashing.
 * **`COMBO-3` $\longleftrightarrow$ `COMBO-4` (Locked Spec $\longleftrightarrow$ Invariant Acceptance Gate)**: `requirements-manager` locks non-negotiable invariants, and `acceptance-review` rejects changes if unrelated code is modified.
 
+### Concentric 3-Tier Neural Connectivity (Layer A → Layer B → Core C)
+
+![Concentric 3-Tier Neural Architecture](diagrams/03_concentric_neural_graph.jpg)
+
+When scaled to hundreds of skills, tools, and CLI drivers, Bob organizes itself into a concentric 3-tier neural topology:
+
+1. **Outer Layer A (Perception & Raw Drivers — 100+ Nodes)**:
+   - Contains all raw skills, specialized plugins, linters, MCP drivers, and CLI tools (`rtk`, `graft`, `xdotool`, `firecrawl`, etc.).
+   - Communicates inwards via **A–B Connectivity** (multi-point convergent routing).
+2. **Middle Layer B (Switchboard Combos & Domain Subspaces — 15 Nodes)**:
+   - Consolidates and normalizes inputs into bounded execution domains (Token Diet, Anti-Regression, Spec Guard, Worktree Isolation, Runtime Engines).
+   - Features rich **B–B Interlinking** (mesh cross-connections between combos) to propagate blast-radius invariants and prevent circular edits across domains.
+3. **Inner Core C (The Autonomic Synaptic Kernel — 2 Core Nodes)**:
+   - **C1: The Contract & Loss Gate (`requirements-manager` + `acceptance-review`)**: Sets the invariant loss function ($Loss = 0$ is the only pass).
+   - **C2: The Forensic & Causal Supervisor (`bob` Causal Engine + `task-supervisor`)**: Orchestrates execution, traces causal feedback loops, and issues surgical correction orders.
+   - Connected via bidirectional **B–C Connectivity** to steer and govern all outer layers.
+
 ---
 
 ## The 4-Tier Large Repository Triage (Under 1,500 Tokens)
@@ -218,7 +235,8 @@ bob/
 │   └── bob.mdc                        # Cursor always-on trigger rule
 └── diagrams/
     ├── 01_switchboard_wire_graph.png  # Switchboard telecommunications wire graph
-    └── 02_circular_ring_crossconnect.png # Circular cross-connect ring diagram
+    ├── 02_circular_ring_crossconnect.png # Circular cross-connect ring diagram
+    └── 03_concentric_neural_graph.jpg # Concentric 3-tier neural connectivity graph
 ```
 
 ---
