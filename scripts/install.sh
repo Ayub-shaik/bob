@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Bob: Automated Installation & Setup Script for Agent Skills and MCP Servers
+# Bob: Lightweight core install — skill, rules, telemetry CLIs only.
+# Optional drivers: bob-ensure <tool> when a task needs them.
 # ==============================================================================
 set -euo pipefail
 
@@ -8,39 +9,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 echo "=================================================================="
-echo "  INSTALLING BOB: FORENSIC AUDIT, MCPs & AGENT SKILLS"
+echo "  INSTALLING BOB (core only — drivers on demand via bob-ensure)"
 echo "=================================================================="
 echo ""
 
-# Helper for colored messaging
 log_info()  { echo -e "\033[1;34m[INFO]\033[0m $*"; }
 log_succ()  { echo -e "\033[1;32m[SUCCESS]\033[0m $*"; }
 log_warn()  { echo -e "\033[1;33m[WARN]\033[0m $*"; }
-log_err()   { echo -e "\033[1;31m[ERROR]\033[0m $*"; }
 
-# 1. Environment & Prerequisites Check
-log_info "1/5: Checking system prerequisites (Node, Cargo, Git)..."
+log_info "1/2: Checking prerequisites (git)..."
 
 if ! command -v git &>/dev/null; then
-    log_err "Git is required. Please install Git first."
-    exit 1
+  echo "Git is recommended but not required for file copy."
 fi
 
-if ! command -v node &>/dev/null; then
-    log_err "Node.js (>= 18) is required. Please install Node.js."
-    exit 1
-fi
-
-if ! command -v npm &>/dev/null; then
-    log_err "npm is required. Please install npm."
-    exit 1
-fi
-
-log_succ "Core environment dependencies found."
+log_succ "Ready."
 echo ""
 
-# 2. Install Bob Core Skill and Rules to Cursor & Claude Code
-log_info "2/5: Linking Bob skill, rules & telemetry into system..."
+log_info "2/2: Installing Bob core (skill, rules, CLIs)..."
 
 CURSOR_SKILLS_DIR="${HOME}/.cursor/skills/bob"
 CURSOR_RULES_DIR="${HOME}/.cursor/rules"
@@ -55,58 +41,21 @@ chmod 644 "${HOME}/.bob/telemetry/events.jsonl" 2>/dev/null || true
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CURSOR_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CLAUDE_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/rules/bob.mdc" "$CURSOR_RULES_DIR/bob.mdc"
+cp "$REPO_ROOT/rules/token-diet.mdc" "$CURSOR_RULES_DIR/token-diet.mdc"
+cp "$REPO_ROOT/rules/empirical-verification-invariants.mdc" "$CURSOR_RULES_DIR/empirical-verification-invariants.mdc"
 cp "$REPO_ROOT/bin/bob-telemetry" "$LOCAL_BIN_DIR/bob-telemetry"
 cp "$REPO_ROOT/bin/bob-dashboard" "$LOCAL_BIN_DIR/bob-dashboard"
+cp "$REPO_ROOT/bin/bob-ensure" "$LOCAL_BIN_DIR/bob-ensure"
+chmod +x "$LOCAL_BIN_DIR/bob-telemetry" "$LOCAL_BIN_DIR/bob-dashboard" "$LOCAL_BIN_DIR/bob-ensure"
 ln -sf "$LOCAL_BIN_DIR/bob-telemetry" "$LOCAL_BIN_DIR/bob"
 
-log_succ "Bob skill installed to: $CURSOR_SKILLS_DIR/SKILL.md and $CLAUDE_SKILLS_DIR/SKILL.md"
-log_succ "Bob rule installed to:  $CURSOR_RULES_DIR/bob.mdc"
-log_succ "Bob telemetry CLI installed to: $LOCAL_BIN_DIR/bob"
-log_succ "Bob web dashboard installed to: $LOCAL_BIN_DIR/bob-dashboard"
+log_succ "Skill:     $CURSOR_SKILLS_DIR/SKILL.md"
+log_succ "Rules:     bob.mdc, token-diet.mdc, empirical-verification-invariants.mdc"
+log_succ "CLIs:      bob, bob-telemetry, bob-dashboard, bob-ensure"
 echo ""
-
-# 3. Install Token-Saving CLI Drivers (rtk & context-mode)
-log_info "3/5: Installing token-saving CLI proxy & context virtualizers..."
-
-if command -v cargo &>/dev/null; then
-    if ! command -v rtk &>/dev/null; then
-        log_info "Installing rtk (CLI stdout compression proxy)..."
-        cargo install rtk-cli || cargo install rtk || log_warn "Could not install rtk via cargo, skipping."
-    else
-        log_succ "rtk is already installed: $(rtk --version 2>/dev/null || echo 'ready')"
-    fi
-else
-    log_warn "Rust/Cargo not detected. Skipping optional rtk install."
-fi
-
-log_info "Installing mksglu/context-mode globally..."
-npm install -g context-mode || log_warn "Failed to install context-mode globally. Can still run via npx."
-
-log_succ "Token optimization layer configured."
-echo ""
-
-# 4. Install Alibaba Open Code Review & Oxlint Fast Static Analyzer
-log_info "4/5: Installing code review, static verification & recording drivers (ocr, oxlint, recordly)..."
-npm install -g @alibaba-group/open-code-review || log_warn "Could not install @alibaba-group/open-code-review globally. Can be run via npx."
-npm install -g oxlint || log_warn "Could not install oxlint globally. Can be run via npx."
-npm install -g recordly || log_warn "Could not install recordly via npm. (Desktop app available via release binaries/source)."
-log_succ "Code review, fast static verification and demo recording drivers configured."
-echo ""
-
-# 5. MCP Configuration Instructions
-log_info "5/5: Preparing MCP configuration instructions..."
-
-CONFIG_TEMPLATE="$REPO_ROOT/mcp-config.example.json"
-echo ""
-echo "------------------------------------------------------------------"
-echo "  NEXT STEP: ADD BOB MCPs TO YOUR CURSOR / CLAUDE CONFIG"
-echo "------------------------------------------------------------------"
-echo "Copy the server entries from: $CONFIG_TEMPLATE"
-echo "into your Cursor Settings -> Features -> MCP or Claude config:"
-echo ""
-cat "$CONFIG_TEMPLATE"
+echo "Optional MCP servers (wire only what you use): $REPO_ROOT/mcp-config.example.json"
+echo "On-demand drivers: bob-ensure rtk | context-mode | oxlint | graft | mnemosyne"
 echo ""
 echo "=================================================================="
-log_succ "Bob is fully installed and ready to audit."
-echo "Invoke in chat with: 'bob, I asked earlier to do X but it didn't execute properly'"
+log_succ "Bob core installed. Invoke: bob, I asked earlier to do X but it didn't execute properly"
 echo "=================================================================="

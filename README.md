@@ -2,7 +2,9 @@
 
 > **"You broke Y while doing X" ends here.**
 
-Bob is an open-source **agent skill + CLI toolkit** that supervises AI coding agents (Cursor, Claude Code, Codex, Windsurf, OpenCode, and generic MCP hosts). It enforces empirical verification, causal feedback-loop tracing, token virtualization, and invariant locks — so agents stop rubber-stamping shallow work and breaking unrelated code.
+Bob is an open-source **lightweight agent skill + CLI toolkit** that supervises AI coding agents (Cursor, Claude Code, Codex, Windsurf, OpenCode, and generic MCP hosts). It enforces empirical verification, causal feedback-loop tracing, and invariant locks — so agents stop rubber-stamping shallow work and breaking unrelated code.
+
+**Design:** Bob ships a small **core** (skill + rules + local telemetry). Heavy optional drivers (`graft`, `rtk`, `context-mode`, …) are **called when needed** via `bob-ensure <tool>` or `npx -y` — never bulk-installed at setup.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node-%3E%3D18-brightgreen.svg)](https://nodejs.org)
@@ -50,14 +52,19 @@ chmod +x scripts/install.sh scripts/check-mcp.sh bin/*
 ./scripts/install.sh
 ```
 
-This installs:
+This installs **core only**:
 
-- `~/.cursor/skills/bob/SKILL.md` and `~/.cursor/rules/bob.mdc`
-- `~/.claude/skills/bob/SKILL.md` (Claude Code / Claude Desktop skills)
-- `~/.local/bin/bob`, `bob-telemetry`, `bob-dashboard`, `bob-audit`
-- Optional global CLIs: `context-mode`, `oxlint`, Open Code Review
+- `~/.cursor/skills/bob/SKILL.md` + rules (`bob.mdc`, `token-diet.mdc`, `empirical-verification-invariants.mdc`)
+- `~/.claude/skills/bob/SKILL.md`
+- `~/.local/bin/bob`, `bob-telemetry`, `bob-dashboard`, `bob-ensure`
 
-**Health check:**
+Does **not** bulk-install npm/cargo tools or edit your MCP config. When a task needs a driver:
+
+```bash
+bob-ensure rtk          # or: context-mode | oxlint | graft | mnemosyne
+```
+
+**Diagnostic (optional drivers present?):**
 
 ```bash
 ./scripts/check-mcp.sh
@@ -69,8 +76,8 @@ This installs:
 
 ### Cursor (recommended)
 
-1. Run `./scripts/install.sh` (links skill + rule automatically).
-2. Add MCP servers from [mcp-config.example.json](mcp-config.example.json) under **Settings → Features → MCP**.
+1. Run `./scripts/install.sh` (core only).
+2. **Optional:** wire MCP servers you actually use from [mcp-config.example.json](mcp-config.example.json).
 3. Invoke in chat:
    - `bob, I asked earlier to do X but it didn't execute properly`
    - `bob audit this scroll behavior`
@@ -190,9 +197,13 @@ bob/
 ├── bin/
 │   ├── bob-telemetry         # CLI ledger (also `bob`)
 │   ├── bob-dashboard         # Local web dashboard
+│   ├── bob-ensure            # On-demand optional driver install
 │   └── bob-audit             # Standalone git/invariant audit
 ├── skills/bob/SKILL.md       # Core forensic skill
-├── rules/bob.mdc             # Always-on trigger rule (Cursor)
+├── rules/
+│   ├── bob.mdc               # Always-on trigger (Cursor)
+│   ├── token-diet.mdc        # Read/build log caps
+│   └── empirical-verification-invariants.mdc
 └── diagrams/                 # SVG architecture graphs
 ```
 

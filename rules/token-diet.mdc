@@ -1,0 +1,25 @@
+---
+description: Token diet — rtk, read budgets, build log caps (all workspaces)
+alwaysApply: true
+---
+
+# Token diet (global)
+
+Reduce per-turn context without changing product behavior.
+
+## Shell output
+
+- When `rtk` is on PATH, prefer `rtk <cmd>` for noisy commands. If missing: `bob-ensure rtk` once, or redirect to `/tmp/` and `tail -25`.
+- Never paste build, docker, or gradle logs longer than 30 lines into chat.
+
+## File reads
+
+- Follow `graft-code-map.mdc`: Graft crux or skeleton first; max **80 lines** per `Read`; open only at Graft-identified spans.
+
+## context-mode MCP
+
+- When the `context-mode` server is available, use it to virtualize large tool outputs instead of inlining full blobs.
+
+## Turn budget (soft)
+
+- Avoid more than 15 tool calls before reporting blockers; prefer `graft_trace_calls` over repeated greps.

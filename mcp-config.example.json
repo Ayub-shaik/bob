@@ -1,9 +1,10 @@
 {
+  "_comment": "Optional — wire only the MCP servers you use. Bob core does not require any of these.",
   "mcpServers": {
     "graft": {
-      "command": "graft",
-      "args": ["mcp"],
-      "description": "Codebase AST, symbol definition cruxes, and blast-radius call graphs"
+      "command": "node",
+      "args": ["ABSOLUTE_PATH_TO/@nanonets/graft/dist/cli.js", "mcp"],
+      "description": "Use explicit node + cli.js path (not bare graft) so Cursor MCP spawn never ENOENT. Run: npm install -g @nanonets/graft; node $(npm root -g)/@nanonets/graft/dist/cli.js --version"
     },
     "mnemosyne": {
       "command": "mnemosyne",

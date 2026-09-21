@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Bob: On-demand optional driver install (core Bob stays lightweight)
+# ==============================================================================
+set -euo pipefail
+
+TOOL="${1:-}"
+
+usage() {
+  cat <<'EOF'
+Usage: bob-ensure <tool>
+
+Install an optional Bob driver only when a task needs it.
+
+  rtk            CLI stdout compression (needs Rust/cargo)
+  context-mode   MCP output virtualizer (npm global)
+  oxlint         Fast JS/TS lint (npm global or npx)
+  code-review    Open Code Review MCP helper (npm global or npx)
+
+  graft          Install @nanonets/graft via npm (then wire MCP — see mcp-config.example.json)
+  mnemosyne      Print Mnemosyne install steps (separate product)
+
+Bob never blocks on a missing optional tool — use fallbacks from token-diet.mdc.
+EOF
+  exit 1
+}
+
+log() { echo "[bob-ensure] $*"; }
+
+have() { command -v "$1" &>/dev/null; }
+
+ensure_rtk() {
+  if have rtk; then log "rtk already installed"; return 0; fi
+  if ! have cargo; then
+    log "Rust/cargo required. Fallback: redirect noisy output to /tmp/ and tail -25."
+    exit 1
+  fi
+  log "Installing rtk..."
+  cargo install rtk-cli 2>/dev/null || cargo install rtk
+}
+
+ensure_npm_global() {
+  local bin="$1" pkg="$2"
+  if have "$bin"; then log "$bin already installed"; return 0; fi
+  if ! have npm; then
+    log "npm required. Fallback: npx -y $pkg <args>"
+    exit 1
+  fi
+  log "Installing $pkg..."
+  npm install -g "$pkg"
+}
+
+ensure_graft() {
+  if have graft && graft --version &>/dev/null; then
+    log "graft already installed ($(graft --version 2>/dev/null))"
+    return 0
+  fi
+  ensure_npm_global graft @nanonets/graft
+}
+
+print_mnemosyne() {
+  cat <<'EOF'
+Mnemosyne is not bundled with Bob. Install separately:
+
+  # see https://github.com/.../mnemosyne — mnemosyne mcp
+
+Fallback without Mnemosyne: read .cursor/SESSION_HANDOFF.md and DEVELOPMENT_LOG.md.
+EOF
+}
+
+[[ -n "$TOOL" ]] || usage
+
+case "$TOOL" in
+  rtk) ensure_rtk ;;
+  context-mode) ensure_npm_global context-mode context-mode ;;
+  oxlint) ensure_npm_global oxlint oxlint ;;
+  code-review) ensure_npm_global ocr @alibaba-group/open-code-review 2>/dev/null || ensure_npm_global open-code-review @alibaba-group/open-code-review ;;
+  graft) ensure_graft ;;
+  mnemosyne) print_mnemosyne ;;
+  *) usage ;;
+esac

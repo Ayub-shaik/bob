@@ -1,0 +1,33 @@
+---
+description: Rectify LLM blind spots — enforce empirical verification, causal feedback loop tracing, and ban superficial checklist compliance
+alwaysApply: true
+---
+
+# Anti-Superficiality & Empirical Verification Mandate
+
+Every agent and tool operating in this environment MUST strictly adhere to these invariant engineering protocols. No code, audit, or review may violate them.
+
+## 1. Ban on "Checklist Compliance" Auditing
+- The presence of function names, components, event listeners, or variables matching user prompt keywords is **NEVER** proof of implementation.
+- An agent may **NEVER** conclude "No code changes needed" or declare a feature "Fulfilled" simply because code exists on paper or tests pass.
+- When the user reports a failure mode (e.g. jumping, vibrating, springbacks, gesture conflicts), the code is **broken by definition**. The agent must find the dynamic runtime failure mechanism, not rationalize why the code looks complete.
+
+## 2. Mandatory Causal Feedback-Loop Tracing (UI/Scroll/Gestures)
+For any UI, scroll, sticky layout, animation, or touch task, the agent MUST trace the closed-loop causality:
+1. **Trigger / Driver:** What user action or event fires? (`window.onscroll`, `touchstart`, `touchmove`, `touchend`).
+2. **Mutation:** What exact DOM property or CSS style is mutated? (`style.height`, `style.marginBottom`, `classList`).
+3. **Reflow & Layout Feedback:** Does this mutation alter the document height, change scroll container dimensions, or shift the element's bounding rect?
+4. **Secondary Event Loop:** If changing property $M$ shifts the scroll position or bounding box such that it re-triggers or reverses Trigger $T$, a **destructive feedback loop (oscillation/vibration/jumping)** is present.
+5. **Enforcement:** Mutating document layout heights or negative margins inside a scroll listener is strictly forbidden unless isolated from the sticky anchor calculation. Dual-scroll containers (`overflow-y-auto` nested inside a page listening to `window.scrollY`) are strictly forbidden for shared gesture targets.
+
+## 3. Disqualification of Mock Unit Tests as Behavioral Proof
+- Unit tests running in Node/jsdom that test mock arithmetic, boundary clamps, or array lookups are **disqualified** as evidence of interactive, visual, or physical correctness.
+- Passing `vitest` or `tsc --noEmit` only proves mathematical logic and syntax; it proves **zero** about browser reflows, sticky threshold stability, or gesture feel.
+- Agents must never cite passing unit tests as a defense against a reported user interaction failure.
+
+## 4. Adversarial Ground-Truth Falsification
+Before proposing or verifying any fix:
+- Actively construct the failure scenario: *"What happens if the user drags 40px and holds their finger stationary?"*
+- *"What happens if `velocityY` is zero on lift?"*
+- *"Does the page animate back, jump, or stay put?"*
+- If the code triggers an unwanted snap or state reset under these edge cases, it is a regression and must be rewritten.

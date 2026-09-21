@@ -34,29 +34,30 @@ Reconstruct the exact physical contract:
 3. **`.cursor/SESSION_HANDOFF.md` & `.cursor/DEVELOPMENT_LOG.md`**: Check operational history, container deploy state, and known gotchas.
 4. **Acceptance Invariants**: Identify what must NOT happen (e.g., no jumping, no 4Hz vibration, no list takeover, locked modules untouched).
 
-### Step 1.5: Large-Repository Triage & Semantic Anchoring
-In large codebases, Bob NEVER reads entire files or dumps hundreds of lines into context:
-1. **Graft Orientation**:
-   - `graft_repo_map` for top-level clusters and hotspots (<500 tokens).
-   - `graft_find_code` for exact <=8-line cruxes of target functions/symbols.
-2. **Blast-Radius Call Graph (`graft_trace_calls`)**:
-   - Trace callers and callees transitively before touching a single character.
-3. **Cross-Session Memory Lookup (`user-mnemosyne`)**:
-   - Query project-scoped decisions and runbooks using the active repository prefix (`<repo>/decisions:...`).
-4. **Targeted Reading Only**:
-   - Open files only at the exact line ranges identified by Graft (never entire files).
-5. **Noisy Command & Build Output Virtualization**:
-   - Bob NEVER allows raw long-running compilation commands (e.g. Gradle, Cargo, Docker build, native packaging, full test suites) to stream thousands of lines of uncompressed stdout into the context window.
-   - All noisy commands MUST redirect output to a temporary log file (e.g. in `/tmp/`) and inspect only the exit code, duration, and error crux or summary tail.
-6. **Sub-second Static Pre-flight via Fast Linters**:
-   - On JavaScript/TypeScript repositories, run ultra-fast static linters (such as `oxlint`) for instant syntax and anti-pattern verification without spawning heavy runtimes or leaking bloated diagnostics into context.
-7. **Empirical Verification via Headless/Background UI Drivers**:
-   - For interactive gestures and physical layout claims, utilize background desktop/browser drivers (such as `cua-driver` or headless CDP viewports) to falsify layout oscillations and verify gesture deceleration curves without relying on mock unit tests.
-8. **Visual Artifact & Demo Recording (`Recordly` / Capture Drivers)**:
-   - When preparing verifiable proof of UI/UX deliverables, walkthroughs, or bug reproduction, utilize screen capture and presentation tooling (such as `Recordly` for auto-zooms, cursor smoothing, and styled MP4/GIF exports) to generate reproducible, inspectable visual evidence without noisy manual recordings.
-9. **Resource-Constrained Degradation Invariant**:
-   - Any computationally heavy visual, optical, or physical pipeline (continuous shaders, dynamic displacement filters, high-frequency physics ticks) must define an empirical degradation tier for low-spec targets (constrained memory, limited CPU cores, battery saver, or reduced-motion preferences).
-   - Verify that high-overhead rendering is gracefully gated behind runtime capability checks so baseline interaction stays smooth across all supported environments.
+### Step 1.5: Triage (lightweight — call tools only when needed)
+Bob is **core-first**: never block the forensic procedure on a missing optional driver. Use fallbacks from `token-diet.mdc` (log tail, 80-line reads) when a tool is absent.
+
+**Always-on rules** (if installed by `install.sh`):
+- `empirical-verification-invariants.mdc` — causal tracing, no checklist rubber-stamping
+- `token-diet.mdc` — rtk or `/tmp/` log tail; no raw build dumps
+
+**On-demand drivers** — check MCP/CLI first; if missing and the task needs it, run `bob-ensure <tool>` then proceed; if install fails, use the fallback and continue:
+
+| Need | Prefer | Fallback |
+|------|--------|----------|
+| Code orientation | Graft MCP / `graft ask --source` | `bob-ensure graft` → targeted grep + span read |
+| Cross-session memory | Mnemosyne MCP | handoff + DEVELOPMENT_LOG |
+| Noisy shell output | `rtk <cmd>` | `cmd > /tmp/bob.log 2>&1; tail -25 /tmp/bob.log` |
+| Huge tool output | `context-mode` MCP | `bob-ensure context-mode` or summarize tail only |
+| JS/TS pre-flight | `oxlint` / `npx -y oxlint` | `bob-ensure oxlint` or skip to `tsc` on small edits |
+| Diff review | code-review MCP | `git diff` + manual trace |
+
+Bob-only additions (no extra install required):
+
+1. **Noisy builds**: redirect Gradle, Cargo, Docker, test stdout to `/tmp/`; inspect exit code and error tail only.
+2. **Physical UI falsification**: headless CDP, ARTEMIS, or desktop drivers — not jsdom mocks.
+3. **Visual proof**: screen capture only when the deliverable requires a demo artifact.
+4. **Degradation tiers**: heavy shaders/physics must gate behind low-spec and reduced-motion checks.
 
 ### Step 2: Causal Loop & Execution Reality Check
 Bob performs a bidirectional state-trace instead of reading superficial diffs:

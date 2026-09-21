@@ -1,51 +1,65 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Bob: MCP Server Connectivity Health Check & Diagnostic Tool
+# Bob: Optional driver diagnostic (read-only — does not install anything)
 # ==============================================================================
 set -euo pipefail
 
 echo "=================================================================="
-echo "  BOB MCP SERVERS & DRIVER CONNECTIVITY DIAGNOSTIC"
+echo "  BOB OPTIONAL DRIVERS (diagnostic only)"
 echo "=================================================================="
 echo ""
+echo "Bob core works without any of these. Install on demand: bob-ensure <tool>"
+echo ""
 
-check_tool() {
-    local name="$1"
-    local cmd="$2"
-    echo -n "  Checking $name... "
-    local target_cmd=""
-    if command -v "$cmd" &>/dev/null; then
-        target_cmd="$cmd"
-    elif [ -e "$HOME/.local/bin/$cmd" ] || [ -L "$HOME/.local/bin/$cmd" ]; then
-        target_cmd="$HOME/.local/bin/$cmd"
-    fi
-
-    if [ -n "$target_cmd" ]; then
-        local version_str
-        version_str=$("$target_cmd" --version 2>/dev/null || echo 'ready')
-        echo -e "\033[1;32m[INSTALLED]\033[0m ($version_str)"
-    else
-        echo -e "\033[1;33m[NOT DETECTED]\033[0m (Run ./scripts/install.sh to configure)"
-    fi
+resolve_cmd() {
+  local cmd="$1"
+  if command -v "$cmd" &>/dev/null; then
+    command -v "$cmd"
+  elif [ -x "${HOME}/.local/bin/${cmd}" ]; then
+    echo "${HOME}/.local/bin/${cmd}"
+  else
+    echo ""
+  fi
 }
 
-echo "[1/3] CLI Proxies & Token Compressors:"
-check_tool "rtk (CLI token proxy)" "rtk"
-check_tool "context-mode (virtualizer)" "context-mode"
-check_tool "worktrunk (git worktrees)" "wt"
-echo ""
+check_tool() {
+  local name="$1"
+  local cmd="$2"
+  echo -n "  $name... "
+  local target
+  target="$(resolve_cmd "$cmd")"
+  if [ -z "$target" ]; then
+    echo -e "\033[1;33mmissing\033[0m (bob-ensure $cmd)"
+    return
+  fi
+  if [ ! -e "$target" ] || [ -L "$target" ] && [ ! -e "$target" ]; then
+    echo -e "\033[1;33mbroken symlink\033[0m ($target — bob-ensure $cmd)"
+    return
+  fi
+  local ver=""
+  ver=$("$target" --version 2>/dev/null || true)
+  if [ -n "$ver" ]; then
+    echo -e "\033[1;32mOK\033[0m ($target, $ver)"
+  else
+    echo -e "\033[1;32mOK\033[0m ($target)"
+  fi
+}
 
-echo "[2/3] Code Review & Static Pipeline Engines:"
-check_tool "Alibaba Open Code Review (ocr)" "ocr"
-check_tool "Oxlint (Rust-based JS/TS linter)" "oxlint"
-check_tool "Recordly Screen & Demo Recorder" "recordly"
+echo "[CLI / npm]"
+check_tool "rtk" "rtk"
+check_tool "context-mode" "context-mode"
+check_tool "oxlint" "oxlint"
+echo "  oxlint (project)... " 
+if [ -f "package.json" ] && grep -q '"oxlint"' package.json 2>/dev/null; then
+  echo -e "\033[1;32mOK\033[0m (npm run lint:fast in repo)"
+else
+  echo -e "\033[1;33muse\033[0m npx -y oxlint or bob-ensure oxlint"
+fi
 echo ""
-
-echo "[3/3] Local MCP Servers (Graft & Mnemosyne):"
-check_tool "Graft Codebase AST Graph" "graft"
-check_tool "Mnemosyne Memory System" "mnemosyne"
+echo "[MCP — verify in IDE Settings -> MCP]"
+check_tool "graft" "graft"
+check_tool "mnemosyne" "mnemosyne"
 echo ""
-
 echo "=================================================================="
-echo "Diagnostic complete. If any server is missing, see README.md."
+echo "Core Bob: ~/.cursor/skills/bob/SKILL.md + bob.mdc"
 echo "=================================================================="

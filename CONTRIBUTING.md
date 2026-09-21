@@ -25,8 +25,15 @@ Thank you for your interest in contributing to Bob! Bob exists to end the "You b
    ./scripts/install.sh
    ```
 
+## Design principles
+
+- **Core stays small:** skill + rules + telemetry + `bob-ensure`. No bulk npm/cargo installs in `install.sh`.
+- **Drivers on demand:** optional tools are invoked or installed when a task needs them, with documented fallbacks.
+- **No corners cut on forensic quality:** slim packaging, not slim procedure.
+
 ## Pull Request Guidelines
 
 - Ensure any new skills or rules follow standard Cursor Agent Skill conventions (`SKILL.md` with YAML frontmatter).
 - Do not introduce dependencies that cause unnecessary prompt bloat or whole-file reading loops.
+- New optional drivers belong in `bob-ensure` + SKILL Step 1.5 table — not in default install.
 - Update diagrams and documentation if altering the combo topology or the 4-step forensic procedure.
