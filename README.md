@@ -37,14 +37,15 @@ Bob is a **column switchboard** (not a circular ring): Layer A drivers feed Laye
 | **Layer B** | 15 subspace combos (Token Diet, AST Graph, Causal Loop, …) with **orange B↔B cross-links** |
 | **Core C** | Contract & Loss Gate · Forensic & Causal Kernel |
 
-**Interactive diagram** (drag boxes, connectors follow underneath, Ctrl+scroll zoom, click for invariants):
+**Interactive diagram** — drag boxes (connectors follow underneath), Ctrl+scroll or +/- zoom, hover = tubelight trace on that box’s lines, click = full node data:
 
-- Local: open [`diagrams/architecture.html`](diagrams/architecture.html) in a browser, or `bob-dashboard` → `http://localhost:4242/architecture`
-- Live hub: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
+| Open | Where |
+|------|--------|
+| Repo | [`diagrams/architecture.html`](diagrams/architecture.html) — clone and open in any browser |
+| Local dashboard | `bob-dashboard` then `http://localhost:4242/architecture` |
+| Live hub | [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob) |
 
-![Architecture preview](diagrams/architecture-preview.png)
-
-> Static PNGs/SVGs in `diagrams/` are legacy exports. The **interactive HTML** is the source of truth.
+No static PNG/JPG architecture images in this repo — the HTML graph is the only diagram.
 
 ---
 
@@ -210,10 +211,9 @@ bob/
 │   ├── token-diet.mdc        # Read/build log caps
 │   └── empirical-verification-invariants.mdc
 └── diagrams/
-    ├── architecture.html     # Interactive graph (source of truth)
-    ├── bob-graph.js          # Draggable column layout engine
-    ├── bob-graph-data.js     # Node specs + B↔B mesh wiring
-    └── architecture-preview.png
+    ├── architecture.html     # Interactive graph (open in browser)
+    ├── bob-graph.js          # Draggable boxes, zoom, tubelight hover
+    └── bob-graph-data.js     # Drivers, 15 combos, B↔B mesh, Core C
 ```
 
 ---

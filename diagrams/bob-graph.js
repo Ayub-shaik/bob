@@ -408,9 +408,8 @@
     });
 
     redrawEdges();
-    applyEdgeStyles();
     applyViewport();
-    selectNode(nodes.find((n) => n.type === "C") || nodes[0]);
+    clearSelection();
 
     return { graph, selectNode, clearSelection, zoomAt };
   }
