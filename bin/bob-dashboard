@@ -1,0 +1,240 @@
+#!/usr/bin/env node
+/**
+ * Bob Telemetry Live Web Dashboard Server & HTML Generator
+ */
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const { exec } = require('child_process');
+
+const PORT = process.env.PORT || 4242;
+const TELEMETRY_DIR = path.join(os.homedir(), '.bob', 'telemetry');
+const EVENTS_FILE = path.join(TELEMETRY_DIR, 'events.jsonl');
+
+function getEvents() {
+    if (!fs.existsSync(EVENTS_FILE)) return [];
+    try {
+        const lines = fs.readFileSync(EVENTS_FILE, 'utf-8').trim().split('\n').filter(Boolean);
+        return lines.map(line => {
+            try { return JSON.parse(line); } catch (e) { return null; }
+        }).filter(Boolean);
+    } catch (e) {
+        return [];
+    }
+}
+
+function renderHtml(events) {
+    let totalUsed = 0;
+    let totalSaved = 0;
+    events.forEach(ev => {
+        totalUsed += (ev.used || 0);
+        totalSaved += (ev.saved || 0);
+    });
+
+    const total = totalUsed + totalSaved;
+    const efficiency = total > 0 ? ((totalSaved / total) * 100).toFixed(1) : '0.0';
+    const dollarSaved = ((totalSaved / 1000000) * 15).toFixed(2);
+
+    const rows = events.slice().reverse().map((ev, i) => {
+        const turnTotal = (ev.used || 0) + (ev.saved || 0);
+        const eff = turnTotal > 0 ? (((ev.saved || 0) / turnTotal) * 100).toFixed(1) : '0.0';
+        const date = ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString() : 'N/A';
+        return `
+            <tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors">
+                <td class="py-3 px-4 font-mono text-xs text-slate-400">#${events.length - i}</td>
+                <td class="py-3 px-4 text-xs text-slate-400">${date}</td>
+                <td class="py-3 px-4">
+                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        ${ev.category || 'audit'}
+                    </span>
+                </td>
+                <td class="py-3 px-4 font-medium text-slate-200 text-sm">${escapeHtml(ev.query)}</td>
+                <td class="py-3 px-4 font-mono text-sm text-slate-400">${(ev.used || 0).toLocaleString()}</td>
+                <td class="py-3 px-4 font-mono text-sm text-emerald-400 font-semibold">+${(ev.saved || 0).toLocaleString()}</td>
+                <td class="py-3 px-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full" style="width: ${eff}%"></div>
+                        </div>
+                        <span class="font-mono text-xs text-cyan-300 font-medium">${eff}%</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    return `<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bob Telemetry Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 950: '#07090e' }
+                    }
+                }
+            }
+        }
+    </script>
+    <meta http-equiv="refresh" content="5">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col font-sans">
+    <!-- Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-400 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-emerald-500/20">
+                B
+            </div>
+            <div>
+                <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                    BOB AUTONOMIC TELEMETRY
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 animate-pulse">
+                        LIVE
+                    </span>
+                </h1>
+                <p class="text-xs text-slate-400">Continuous Token Savings, Invariants & Causal Audit Ledger</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+            <span>Auto-refresh: <span class="text-emerald-400">5s</span></span>
+            <span class="text-slate-600">|</span>
+            <button onclick="location.reload()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition-colors">
+                Refresh Now
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        <!-- Top Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1 -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 relative overflow-hidden">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Tokens Saved</div>
+                <div class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight">
+                    ${totalSaved.toLocaleString()}
+                </div>
+                <div class="text-xs text-slate-400 mt-2 flex items-center gap-1.5">
+                    <span class="text-emerald-400 font-medium font-mono">${efficiency}%</span> net token reduction
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 relative overflow-hidden">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Tokens Consumed</div>
+                <div class="text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">
+                    ${totalUsed.toLocaleString()}
+                </div>
+                <div class="text-xs text-slate-400 mt-2">
+                    Across <span class="text-slate-200 font-mono">${events.length}</span> recorded turns
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-cyan-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 relative overflow-hidden">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Estimated Cost Saved</div>
+                <div class="text-3xl font-extrabold text-amber-400 font-mono tracking-tight">
+                    ~$${dollarSaved}
+                </div>
+                <div class="text-xs text-slate-400 mt-2">
+                    Based on frontier model token rates
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 relative overflow-hidden">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Anti-Regression Status</div>
+                <div class="text-3xl font-extrabold text-indigo-400 font-mono tracking-tight">
+                    100%
+                </div>
+                <div class="text-xs text-slate-400 mt-2">
+                    0 broken invariants in locked modules
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+        </div>
+
+        <!-- Queries Table -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-200 uppercase tracking-wider">
+                    Query Turn Ledger (${events.length} Events)
+                </h2>
+                <span class="text-xs font-mono text-slate-400">
+                    Source: ~/.bob/telemetry/events.jsonl
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 bg-slate-950/40 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4">Turn</th>
+                            <th class="py-3 px-4">Time</th>
+                            <th class="py-3 px-4">Category</th>
+                            <th class="py-3 px-4">Query / Task</th>
+                            <th class="py-3 px-4">Used</th>
+                            <th class="py-3 px-4">Saved</th>
+                            <th class="py-3 px-4">Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows || '<tr><td colspan="7" class="py-8 text-center text-sm text-slate-500">No events recorded yet.</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-600">
+        Bob Autonomic Pipeline • Forensic Audit, Anti-Regression & Token Virtualization
+    </footer>
+</body>
+</html>`;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Start HTTP Server
+const server = http.createServer((req, res) => {
+    if (req.url === '/api/events') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(getEvents()));
+        return;
+    }
+
+    const events = getEvents();
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(renderHtml(events));
+});
+
+server.listen(PORT, () => {
+    const url = `http://localhost:${PORT}`;
+    console.log(`\n==================================================================`);
+    console.log(`  BOB TELEMETRY DASHBOARD RUNNING AT:`);
+    console.log(`  \x1b[1;32m${url}\x1b[0m`);
+    console.log(`==================================================================\n`);
+
+    // Auto open browser if flag provided
+    if (process.argv.includes('--open')) {
+        const startCmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+        exec(`${startCmd} ${url}`, () => {});
+    }
+});

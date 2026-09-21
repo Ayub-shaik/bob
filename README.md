@@ -228,7 +228,8 @@ bob/
 │   └── check-mcp.sh                   # MCP & driver connectivity diagnostic tool
 ├── bin/
 │   ├── bob-audit                      # Standalone CLI forensic audit script
-│   └── bob-telemetry                  # Universal telemetry logger & stats CLI
+│   ├── bob-telemetry                  # Universal telemetry logger & stats CLI
+│   └── bob-dashboard                  # Real-time web telemetry dashboard server
 ├── skills/
 │   └── bob/
 │       └── SKILL.md                   # Core forensic audit & correction skill

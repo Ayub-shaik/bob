@@ -17,6 +17,7 @@ Bob Telemetry & Analytics CLI
 Usage:
   bob-telemetry log --query <text> --used <tokens> --saved <tokens> --category <cat>
   bob-telemetry stats [--today | --all]
+  bob-telemetry dashboard [--port 4242] [--open]
   bob-telemetry clear
 
 Options:
@@ -145,6 +146,10 @@ case "${1:-stats}" in
     stats)
         shift
         cmd_stats "${1:---today}"
+        ;;
+    dashboard)
+        shift
+        exec node "$(dirname "$0")/bob-dashboard" "$@"
         ;;
     clear)
         > "$EVENTS_FILE"

@@ -53,11 +53,13 @@ cp "$REPO_ROOT/skills/bob/SKILL.md" "$CURSOR_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CLAUDE_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/rules/bob.mdc" "$CURSOR_RULES_DIR/bob.mdc"
 cp "$REPO_ROOT/bin/bob-telemetry" "$LOCAL_BIN_DIR/bob-telemetry"
+cp "$REPO_ROOT/bin/bob-dashboard" "$LOCAL_BIN_DIR/bob-dashboard"
 ln -sf "$LOCAL_BIN_DIR/bob-telemetry" "$LOCAL_BIN_DIR/bob"
 
 log_succ "Bob skill installed to: $CURSOR_SKILLS_DIR/SKILL.md and $CLAUDE_SKILLS_DIR/SKILL.md"
 log_succ "Bob rule installed to:  $CURSOR_RULES_DIR/bob.mdc"
 log_succ "Bob telemetry CLI installed to: $LOCAL_BIN_DIR/bob"
+log_succ "Bob web dashboard installed to: $LOCAL_BIN_DIR/bob-dashboard"
 echo ""
 
 # 3. Install Token-Saving CLI Drivers (rtk & context-mode)
