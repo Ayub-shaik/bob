@@ -69,12 +69,6 @@ cmd_log() {
         fs.appendFileSync(process.argv[8], JSON.stringify(event) + "\n");
     ' "$timestamp" "$query" "$used" "$saved" "$category" "$tools" "$model" "$EVENTS_FILE"
 
-    # Optional mirror to local tomorrowtools hub if running
-    if curl -s --max-time 0.5 "http://127.0.0.1:8787/healthz" >/dev/null 2>&1; then
-        # Local container mounts ~/.bob as readonly or rw, but direct local file write already ensures sync.
-        :
-    fi
-
     echo "Logged Bob turn telemetry: used=${used}, saved=${saved}"
 }
 
