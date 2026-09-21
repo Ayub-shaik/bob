@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Bob! Bob exists to end the "You b
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/bob.git
+   git clone https://github.com/Ayub-shaik/bob.git
    cd bob
    ```
 2. Verify system prerequisites:

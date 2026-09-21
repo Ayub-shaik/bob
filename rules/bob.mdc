@@ -12,7 +12,7 @@ Whenever the user says **`bob`**, **`/bob`**, or indicates that a prior instruct
 3. **Enforce Empirical Verification**: Apply the rules in `~/.cursor/rules/empirical-verification-invariants.mdc`.
 4. **Execute the 4-step forensic procedure**:
    - **Step 1**: Reconstruct the physical and behavioral requirements from raw user speech.
-   - **Step 1.5**: Use Graft and targeted AST traces to locate the exact mutation points without blowing context budgets. Never allow raw Gradle/Docker compile logs to flood stdout; pipe long outputs to `/tmp/` and inspect status/summary only.
-   - **Step 2**: Perform Causal Feedback-Loop Tracing (Container conflicts, layout shifts feeding into scroll triggers, touch physics under zero-velocity releases).
+   - **Step 1.5**: Use Graft and targeted AST traces to locate the exact mutation points without blowing context budgets. Never allow long compilation/build logs to flood stdout; pipe verbose output to `/tmp/` and inspect status/summary only. Run fast static lint pre-flight on JS/TS repos. Audit computationally heavy UI effects for resource-constrained degradation tiers.
+   - **Step 2**: Perform Causal Feedback-Loop Tracing (Container conflicts, layout shifts feeding into scroll triggers, compositor overhead under high-frequency updates, touch physics under zero-velocity releases).
    - **Step 3**: Produce the Forensic Gap Analysis (Surface Mimicry vs. Real Behavior vs. Active Failure Modes).
-   - **Step 4**: Emit and execute concrete, numbered surgical correction orders (`FIX-001`, `FIX-002`) that break the oscillation loops and fix the physical interaction.
+   - **Step 4**: Emit and execute concrete, numbered surgical correction orders (`FIX-001`, `FIX-002`) that break the oscillation loops and fix the physical interaction. Record turn telemetry via `bob-telemetry log`.

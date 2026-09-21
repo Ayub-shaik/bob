@@ -47,7 +47,10 @@ CURSOR_RULES_DIR="${HOME}/.cursor/rules"
 CLAUDE_SKILLS_DIR="${HOME}/.claude/skills/bob"
 LOCAL_BIN_DIR="${HOME}/.local/bin"
 
-mkdir -p "$CURSOR_SKILLS_DIR" "$CURSOR_RULES_DIR" "$CLAUDE_SKILLS_DIR" "$LOCAL_BIN_DIR"
+mkdir -p "$CURSOR_SKILLS_DIR" "$CURSOR_RULES_DIR" "$CLAUDE_SKILLS_DIR" "$LOCAL_BIN_DIR" "${HOME}/.bob/telemetry"
+touch "${HOME}/.bob/telemetry/events.jsonl"
+chmod 755 "${HOME}/.bob" "${HOME}/.bob/telemetry" 2>/dev/null || true
+chmod 644 "${HOME}/.bob/telemetry/events.jsonl" 2>/dev/null || true
 
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CURSOR_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CLAUDE_SKILLS_DIR/SKILL.md"
@@ -82,10 +85,12 @@ npm install -g context-mode || log_warn "Failed to install context-mode globally
 log_succ "Token optimization layer configured."
 echo ""
 
-# 4. Install Alibaba Open Code Review
-log_info "4/5: Installing Alibaba Open Code Review CLI (ocr)..."
+# 4. Install Alibaba Open Code Review & Oxlint Fast Static Analyzer
+log_info "4/5: Installing code review, static verification & recording drivers (ocr, oxlint, recordly)..."
 npm install -g @alibaba-group/open-code-review || log_warn "Could not install @alibaba-group/open-code-review globally. Can be run via npx."
-log_succ "Code review drivers configured."
+npm install -g oxlint || log_warn "Could not install oxlint globally. Can be run via npx."
+npm install -g recordly || log_warn "Could not install recordly via npm. (Desktop app available via release binaries/source)."
+log_succ "Code review, fast static verification and demo recording drivers configured."
 echo ""
 
 # 5. MCP Configuration Instructions

@@ -4,10 +4,15 @@
   "description": "Forensic audit supervisor, anti-regression engine, and token optimization pipeline for AI coding agents",
   "main": "index.js",
   "bin": {
-    "bob": "./bin/bob-audit"
+    "bob": "./bin/bob-telemetry",
+    "bob-audit": "./bin/bob-audit",
+    "bob-telemetry": "./bin/bob-telemetry",
+    "bob-dashboard": "./bin/bob-dashboard"
   },
   "scripts": {
     "audit": "./bin/bob-audit",
+    "telemetry": "./bin/bob-telemetry stats",
+    "dashboard": "./bin/bob-dashboard",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [

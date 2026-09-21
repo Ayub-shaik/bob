@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-label="Bob concentric 3-tier neural architecture">
+  <defs>
+    <radialGradient id="neuralBg" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#172554" stop-opacity="0.35"/>
+      <stop offset="55%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+  </defs>
+  <rect width="720" height="720" fill="url(#neuralBg)" rx="18"/>
+  <text x="360" y="32" text-anchor="middle" fill="#f1f5f9" font-family="system-ui,sans-serif" font-size="17" font-weight="700">Concentric 3-Tier Neural Architecture</text>
+  <text x="360" y="52" text-anchor="middle" fill="#94a3b8" font-size="11">100 Drivers (A) ’ 15 Combos (B) ’ 2 Kernel (C)</text>
+
+  <!-- Rings -->
+  <circle cx="360" cy="380" r="300" fill="none" stroke="rgba(56,189,248,0.15)" stroke-width="1.2" stroke-dasharray="5 7"/>
+  <circle cx="360" cy="380" r="265" fill="none" stroke="rgba(56,189,248,0.12)" stroke-width="1"/>
+  <circle cx="360" cy="380" r="175" fill="rgba(251,146,60,0.03)" stroke="rgba(251,146,60,0.3)" stroke-width="1.5"/>
+  <circle cx="360" cy="380" r="70" fill="rgba(250,204,21,0.05)" stroke="rgba(250,204,21,0.4)" stroke-width="1.5"/>
+
+  <!-- Sample A nodes -->
+  <g font-family="monospace" font-size="7" fill="#e0f2fe">
+    <rect x="348" y="68" width="24" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="360" y="77" text-anchor="middle">rtk</text>
+    <rect x="600" y="200" width="32" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="616" y="209" text-anchor="middle">graft</text>
+    <rect x="620" y="380" width="36" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="638" y="389" text-anchor="middle">oxlint</text>
+    <rect x="88" y="380" width="40" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="108" y="389" text-anchor="middle">recordly</text>
+    <rect x="100" y="200" width="44" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="122" y="209" text-anchor="middle">artemis</text>
+    <rect x="340" y="660" width="40" height="12" rx="3" fill="#082f49" stroke="#67e8f9" stroke-width="0.8"/><text x="360" y="669" text-anchor="middle">mnemosyne</text>
+  </g>
+
+  <!-- B nodes -->
+  <g font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#ffedd5">
+    <rect x="330" y="218" width="60" height="22" rx="6" fill="#431407" stroke="#fdba74" stroke-width="1.2"/><text x="360" y="233" text-anchor="middle">Token Diet</text>
+    <rect x="470" y="300" width="72" height="22" rx="6" fill="#431407" stroke="#fdba74" stroke-width="1.2"/><text x="506" y="315" text-anchor="middle">AST Graph</text>
+    <rect x="470" y="438" width="72" height="22" rx="6" fill="#431407" stroke="#fdba74" stroke-width="1.2"/><text x="506" y="453" text-anchor="middle">Causal Loop</text>
+    <rect x="178" y="438" width="72" height="22" rx="6" fill="#431407" stroke="#fdba74" stroke-width="1.2"/><text x="214" y="453" text-anchor="middle">State Reality</text>
+    <rect x="178" y="300" width="72" height="22" rx="6" fill="#431407" stroke="#fdba74" stroke-width="1.2"/><text x="214" y="315" text-anchor="middle">Audit Pipe</text>
+  </g>
+
+  <!-- C nodes -->
+  <rect x="300" y="358" width="52" height="36" rx="8" fill="#422006" stroke="#fde047" stroke-width="1.8"/>
+  <text x="326" y="374" text-anchor="middle" fill="#fef08a" font-size="8" font-weight="800">C1</text>
+  <text x="326" y="386" text-anchor="middle" fill="#fde68a" font-size="6">GATE</text>
+  <rect x="368" y="358" width="52" height="36" rx="8" fill="#422006" stroke="#fde047" stroke-width="1.8"/>
+  <text x="394" y="374" text-anchor="middle" fill="#fef08a" font-size="8" font-weight="800">C2</text>
+  <text x="394" y="386" text-anchor="middle" fill="#fde68a" font-size="6">KERNEL</text>
+
+  <!-- Sample streams -->
+  <path d="M360 80 Q360 150 360 218" fill="none" stroke="rgba(56,189,248,0.35)" stroke-width="1"/>
+  <path d="M616 206 Q540 240 506 300" fill="none" stroke="rgba(56,189,248,0.3)" stroke-width="1"/>
+  <path d="M506 322 Q450 360 420 376" fill="none" stroke="rgba(251,146,60,0.4)" stroke-width="1.2"/>
+  <path d="M360 240 Q360 300 326 358" fill="none" stroke="rgba(250,204,21,0.5)" stroke-width="1.4"/>
+
+  <text x="360" y="700" text-anchor="middle" fill="#64748b" font-size="10">Cyan: A’B feed · Orange: B”B mesh · Gold: B’C governance stream</text>
+</svg>

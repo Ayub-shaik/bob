@@ -32,6 +32,8 @@ cmd_log() {
     local used=0
     local saved=0
     local category="audit"
+    local tools=""
+    local model=""
     local timestamp
     timestamp=$(date -Iseconds)
 
@@ -41,6 +43,8 @@ cmd_log() {
             --used) used="$2"; shift 2 ;;
             --saved) saved="$2"; shift 2 ;;
             --category) category="$2"; shift 2 ;;
+            --tools) tools="$2"; shift 2 ;;
+            --model) model="$2"; shift 2 ;;
             *) shift ;;
         esac
     done
@@ -58,10 +62,18 @@ cmd_log() {
             query: process.argv[2],
             used: parseInt(process.argv[3], 10) || 0,
             saved: parseInt(process.argv[4], 10) || 0,
-            category: process.argv[5] || "audit"
+            category: process.argv[5] || "audit",
+            tools: process.argv[6] ? process.argv[6].split(",").map(s => s.trim()).filter(Boolean) : [],
+            model: process.argv[7] || ""
         };
-        fs.appendFileSync(process.argv[6], JSON.stringify(event) + "\n");
-    ' "$timestamp" "$query" "$used" "$saved" "$category" "$EVENTS_FILE"
+        fs.appendFileSync(process.argv[8], JSON.stringify(event) + "\n");
+    ' "$timestamp" "$query" "$used" "$saved" "$category" "$tools" "$model" "$EVENTS_FILE"
+
+    # Optional mirror to local tomorrowtools hub if running
+    if curl -s --max-time 0.5 "http://127.0.0.1:8787/healthz" >/dev/null 2>&1; then
+        # Local container mounts ~/.bob as readonly or rw, but direct local file write already ensures sync.
+        :
+    fi
 
     echo "Logged Bob turn telemetry: used=${used}, saved=${saved}"
 }
@@ -116,13 +128,14 @@ cmd_stats() {
                 ? ((ev.saved / (ev.used + ev.saved)) * 100).toFixed(1) + "%" 
                 : "0.0%";
             const q = ev.query.length > 25 ? ev.query.slice(0, 22) + "..." : ev.query;
+            const toolStr = ev.tools && ev.tools.length > 0 ? " [" + ev.tools.join(",") + "]" : "";
             console.log(
                 `#${String(idx + 1).padEnd(5)} ` +
                 `${(ev.category || "audit").padEnd(12)} ` +
                 `${String(ev.used).padEnd(13)} ` +
                 `${String(ev.saved).padEnd(14)} ` +
                 `${eff.padEnd(16)} ` +
-                `${q}`
+                `${q}${toolStr}`
             );
         });
 

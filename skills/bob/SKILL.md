@@ -42,21 +42,31 @@ In large codebases, Bob NEVER reads entire files or dumps hundreds of lines into
 2. **Blast-Radius Call Graph (`graft_trace_calls`)**:
    - Trace callers and callees transitively before touching a single character.
 3. **Cross-Session Memory Lookup (`user-mnemosyne`)**:
-   - Query project-scoped decisions and runbooks (`salahtime/decisions:...`).
+   - Query project-scoped decisions and runbooks using the active repository prefix (`<repo>/decisions:...`).
 4. **Targeted Reading Only**:
    - Open files only at the exact line ranges identified by Graft (never entire files).
 5. **Noisy Command & Build Output Virtualization**:
-   - Bob NEVER allows raw long-running compilation commands (e.g. Gradle, Docker build, APK packaging, full test suites) to stream thousands of lines of uncompressed stdout into the context window.
-   - All noisy commands MUST redirect output to a log file in `/tmp/` and inspect only the exit code, duration, and error crux or summary tail.
+   - Bob NEVER allows raw long-running compilation commands (e.g. Gradle, Cargo, Docker build, native packaging, full test suites) to stream thousands of lines of uncompressed stdout into the context window.
+   - All noisy commands MUST redirect output to a temporary log file (e.g. in `/tmp/`) and inspect only the exit code, duration, and error crux or summary tail.
+6. **Sub-second Static Pre-flight via Fast Linters**:
+   - On JavaScript/TypeScript repositories, run ultra-fast static linters (such as `oxlint`) for instant syntax and anti-pattern verification without spawning heavy runtimes or leaking bloated diagnostics into context.
+7. **Empirical Verification via Headless/Background UI Drivers**:
+   - For interactive gestures and physical layout claims, utilize background desktop/browser drivers (such as `cua-driver` or headless CDP viewports) to falsify layout oscillations and verify gesture deceleration curves without relying on mock unit tests.
+8. **Visual Artifact & Demo Recording (`Recordly` / Capture Drivers)**:
+   - When preparing verifiable proof of UI/UX deliverables, walkthroughs, or bug reproduction, utilize screen capture and presentation tooling (such as `Recordly` for auto-zooms, cursor smoothing, and styled MP4/GIF exports) to generate reproducible, inspectable visual evidence without noisy manual recordings.
+9. **Resource-Constrained Degradation Invariant**:
+   - Any computationally heavy visual, optical, or physical pipeline (continuous shaders, dynamic displacement filters, high-frequency physics ticks) must define an empirical degradation tier for low-spec targets (constrained memory, limited CPU cores, battery saver, or reduced-motion preferences).
+   - Verify that high-overhead rendering is gracefully gated behind runtime capability checks so baseline interaction stays smooth across all supported environments.
 
 ### Step 2: Causal Loop & Execution Reality Check
 Bob performs a bidirectional state-trace instead of reading superficial diffs:
-1. **Container Trace**: Is there an inner container with `overflow-y-auto` fighting `window` scroll? If yes, flag as **FATAL GESTURE CONFLICT**.
-2. **Mutation -> Feedback Trace**: Does a scroll or resize handler mutate DOM styles (height, negative margins, padding)? Trace whether that mutation changes `document.documentElement.scrollHeight` or `getBoundingClientRect().top`. If it shifts the anchor, flag as **CLOSED-LOOP OSCILLATION (VIBRATION)**.
-3. **Touch Physics Trace**:
-   - Trace touch drag: Does lifting with low velocity preserve current scroll position (hold midway)? Or does it force an animated snap?
-   - Trace velocity threshold: Is the direction determined by actual release impulse or noisy micro-deltas?
-4. **Inspect Physical Artifacts**: Run `git status`, `git log -n 5 --stat`, `git diff HEAD~1` to see what code was actually altered vs claimed.
+1. **Container Trace**: Is there an inner container with independent overflow fighting parent or window scroll? If yes, flag as **FATAL GESTURE CONFLICT**.
+2. **Mutation -> Feedback Trace**: Does an event or scroll listener mutate layout properties (dimensions, margins, padding)? Trace whether that mutation alters container bounds or shifts the scroll anchor, causing a **CLOSED-LOOP OSCILLATION (VIBRATION)**.
+3. **Compositor & Rendering Overhead Trace**: Does an element trigger expensive per-frame software rasterization or continuous filter re-computation over active scrollable areas?
+4. **Touch & Gesture Physics Trace**:
+   - Trace drag release: Does lifting with low velocity preserve current state (hold midway)? Or does it force an artificial, unwanted snap?
+   - Trace velocity threshold: Is gesture direction determined by actual release impulse or noisy micro-deltas?
+5. **Inspect Physical Artifacts**: Run `git status`, `git log -n 5 --stat`, `git diff HEAD~1` to see what code was actually altered vs claimed.
 
 ### Step 3: Forensic Blame & Gap Analysis
 Structure into four unsparing categories:
@@ -65,9 +75,15 @@ Structure into four unsparing categories:
 - **Active Failure Modes**: The exact mathematical and physical reasons for the reported defect (e.g. vibration caused by `stuckLatched` toggling every frame due to document collapse).
 - **Root Cause**: The underlying flaw in the implementation.
 
-### Step 4: Concrete Surgical Correction Order
+### Step 4: Concrete Surgical Correction Order & Telemetry Recording
 Bob issues exact, numbered, single-responsibility code modifications:
 1. **Invariant Lock**: State what must be preserved.
 2. **Surgical Operations**: Specify the exact file and lines to remove feedback loops and container collisions (`FIX-001`, `FIX-002`).
 3. **Execution & Verification**: Execute surgical changes (`StrReplace`), verify that feedback loops are broken, verify types (`tsc`), verify layout against real browser rules, and run `acceptance-review`.
 4. **Hard Gate**: Never declare work "done" until repository verification proves both the missing items are implemented and the regressions are completely resolved.
+5. **Autonomic Telemetry Logging**:
+   - At the completion of an audit or surgical correction, log the turn metrics via `bob-telemetry` (or write to `~/.bob/telemetry/events.jsonl`):
+     ```bash
+     bob-telemetry log --query "<task intent>" --used <tokens_used> --saved <tokens_saved> --category "<causal-fix|audit|anti-regression>" --tools "<tools_used>" --model "<model_name>"
+     ```
+   - This records verifiable empirical token efficiency and invariant health to the ledger without manual overhead.

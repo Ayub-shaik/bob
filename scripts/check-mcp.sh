@@ -37,6 +37,8 @@ echo ""
 
 echo "[2/3] Code Review & Static Pipeline Engines:"
 check_tool "Alibaba Open Code Review (ocr)" "ocr"
+check_tool "Oxlint (Rust-based JS/TS linter)" "oxlint"
+check_tool "Recordly Screen & Demo Recorder" "recordly"
 echo ""
 
 echo "[3/3] Local MCP Servers (Graft & Mnemosyne):"

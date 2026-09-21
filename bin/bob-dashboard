@@ -49,7 +49,10 @@ function renderHtml(events) {
                         ${ev.category || 'audit'}
                     </span>
                 </td>
-                <td class="py-3 px-4 font-medium text-slate-200 text-sm">${escapeHtml(ev.query)}</td>
+                <td class="py-3 px-4 font-medium text-slate-200 text-sm">
+                    <div>${escapeHtml(ev.query)}</div>
+                    ${ev.tools && ev.tools.length > 0 ? `<div class="mt-1 flex gap-1 flex-wrap">${ev.tools.map(t => `<span class="text-[10px] px-1.5 py-0.2 bg-slate-800 text-slate-300 rounded border border-slate-700">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+                </td>
                 <td class="py-3 px-4 font-mono text-sm text-slate-400">${(ev.used || 0).toLocaleString()}</td>
                 <td class="py-3 px-4 font-mono text-sm text-emerald-400 font-semibold">+${(ev.saved || 0).toLocaleString()}</td>
                 <td class="py-3 px-4">
