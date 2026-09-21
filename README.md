@@ -27,23 +27,24 @@ You are open to use this, and suggest any improvements.**
 
 ---
 
-## Architecture (Smooth Overview)
+## Architecture (Interactive)
 
-Bob organizes tools into **three concentric tiers**:
+Bob is a **column switchboard** (not a circular ring): Layer A drivers feed Layer B combos, combos have an explicit **B↔B peer mesh**, and everything streams into Core C.
 
-1. **Layer A — Raw drivers** (~100 slots): `rtk`, `graft`, `oxlint`, `mnemosyne`, `recordly`, `artemis`, etc.
-2. **Layer B — Subspace combos** (15): Token Diet, AST Graph, Causal Loop, Invariant Lock, Surgical Fixer, …
-3. **Core C — Kernel** (2): Contract & Loss Gate · Forensic & Causal Kernel
+| Tier | Role |
+|------|------|
+| **Layer A** | Raw drivers (`rtk`, `graft`, `oxlint`, `mnemosyne`, …) |
+| **Layer B** | 15 subspace combos (Token Diet, AST Graph, Causal Loop, …) with **orange B↔B cross-links** |
+| **Core C** | Contract & Loss Gate · Forensic & Causal Kernel |
 
-![Switchboard wire graph](diagrams/01_switchboard_wire_graph.png)
+**Interactive diagram** (drag boxes, connectors follow underneath, Ctrl+scroll zoom, click for invariants):
 
-Peer **B↔B mesh** links propagate invariants (e.g. AST Graph ↔ Audit Pipeline) before code lands.
+- Local: open [`diagrams/architecture.html`](diagrams/architecture.html) in a browser, or `bob-dashboard` → `http://localhost:4242/architecture`
+- Live hub: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
 
-![Circular cross-connect ring — 6 combos with synaptic hub](diagrams/02_circular_ring_crossconnect.png)
+![Architecture preview](diagrams/architecture-preview.png)
 
-Live interactive A→B→C graph: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
-
-> **Note:** GitHub does not render SVG in README images. Use the `.png` / `.jpg` files here; `diagrams/*.svg` are editable sources (open the file on GitHub to preview).
+> Static PNGs/SVGs in `diagrams/` are legacy exports. The **interactive HTML** is the source of truth.
 
 ---
 
@@ -208,7 +209,11 @@ bob/
 │   ├── bob.mdc               # Always-on trigger (Cursor)
 │   ├── token-diet.mdc        # Read/build log caps
 │   └── empirical-verification-invariants.mdc
-└── diagrams/                 # PNG/JPG for README; SVG sources (regen 02: scripts/render-diagram-02.py)
+└── diagrams/
+    ├── architecture.html     # Interactive graph (source of truth)
+    ├── bob-graph.js          # Draggable column layout engine
+    ├── bob-graph-data.js     # Node specs + B↔B mesh wiring
+    └── architecture-preview.png
 ```
 
 ---

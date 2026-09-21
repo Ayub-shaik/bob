@@ -215,11 +215,37 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
+const DIAGRAMS_DIR = path.join(__dirname, '..', 'diagrams');
+const MIME = {
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml',
+};
+
 // Start HTTP Server
 const server = http.createServer((req, res) => {
-    if (req.url === '/api/events') {
+    const urlPath = (req.url || '/').split('?')[0];
+
+    if (urlPath === '/api/events') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(getEvents()));
+        return;
+    }
+
+    if (urlPath === '/architecture' || urlPath.startsWith('/diagrams/')) {
+        const rel = urlPath === '/architecture' ? 'architecture.html' : urlPath.replace('/diagrams/', '');
+        const filePath = path.join(DIAGRAMS_DIR, rel);
+        if (filePath.startsWith(DIAGRAMS_DIR) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+            const ext = path.extname(filePath);
+            res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+            res.end(fs.readFileSync(filePath));
+            return;
+        }
+        res.writeHead(404);
+        res.end('Not found');
         return;
     }
 
@@ -233,6 +259,7 @@ server.listen(PORT, () => {
     console.log(`\n==================================================================`);
     console.log(`  BOB TELEMETRY DASHBOARD RUNNING AT:`);
     console.log(`  \x1b[1;32m${url}\x1b[0m`);
+    console.log(`  Interactive architecture: \x1b[1;36m${url}/architecture\x1b[0m`);
     console.log(`==================================================================\n`);
 
     // Auto open browser if flag provided
