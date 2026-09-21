@@ -146,16 +146,29 @@
     return pts;
   }
 
-  /** One driver per arc slot on the outer paren — zigzag in/out so boxes never stack. */
-  function placeDriversOnOuterArc(entries, cx, cy, anchor, bulge, span, side) {
-    const slots = parenArc(entries.length, cx, cy, anchor, bulge, span, side, 22);
-    return entries.map((entry, i) => {
-      const zig = i % 2 === 0 ? 0 : side === "left" ? 18 : -18;
+  /**
+   * Drivers fan out horizontally from their combo — grow wide, stay low on Y.
+   * Each combo gets a short horizontal strip (wrap to 2 rows max if many drivers).
+   */
+  function placeDriversHorizontal(combo, drivers, cx) {
+    const left = combo.x < cx;
+    const colW = 56;
+    const rowH = 17;
+    const cols = Math.min(4, drivers.length);
+    const rows = Math.ceil(drivers.length / cols);
+    return drivers.map((d, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const rowCount = Math.min(cols, drivers.length - row * cols);
+      const xOff = (col - (rowCount - 1) / 2) * colW;
+      const yOff = (row - (rows - 1) / 2) * rowH;
+      const depth = row * 22;
+      const baseX = combo.x + (left ? -88 - depth : 88 + depth);
       return {
-        ...entry,
-        x: slots[i].x + zig,
-        y: slots[i].y,
-        side,
+        d,
+        x: baseX + xOff,
+        y: combo.y + yOff,
+        comboName: combo.name,
       };
     });
   }
@@ -165,15 +178,15 @@
     const edges = [];
     const byName = {};
 
-    const width = 1520;
-    const height = 760;
+    const width = 1580;
+    const height = 520;
     const cx = width / 2;
     const cy = height / 2;
     const leftComboCount = 8;
-    const comboGap = 24;
-    const innerAnchor = 68;
-    const innerBulge = 108;
-    const innerSpan = 440;
+    const comboGap = 22;
+    const innerAnchor = 62;
+    const innerBulge = 88;
+    const innerSpan = 300;
     const leftInner = spreadByY(
       parenArc(leftComboCount, cx, cy, innerAnchor, innerBulge, innerSpan, "left", 22),
       comboGap,
@@ -216,36 +229,16 @@
     });
 
     let aIdx = 0;
-    const driverEntries = [];
-    DRIVERS.forEach((d) => {
-      const combo = COMBO_BY_NAME[d.category] || COMBOS[0];
-      const comboNode = byName[combo.name];
-      if (!comboNode) return;
-      driverEntries.push({
-        d,
-        comboName: combo.name,
-        side: comboNode.x < cx ? "left" : "right",
-        comboY: comboNode.y,
-      });
+    const outerAnchor = 118;
+    const outerBulge = 168;
+    const outerSpan = 320;
+    const driverPts = [];
+    Object.entries(driversByCombo).forEach(([comboName, list]) => {
+      const combo = byName[comboName];
+      if (!combo) return;
+      placeDriversHorizontal(combo, list, cx).forEach((pt) => driverPts.push(pt));
     });
-    const bySide = (side) =>
-      driverEntries
-        .filter((e) => e.side === side)
-        .sort((a, b) => a.comboY - b.comboY || a.d.name.localeCompare(b.d.name));
-    const outerAnchor = 44;
-    const outerBulge = 200;
-    const outerSpan = 500;
-    const leftDrivers = spreadByY(
-      placeDriversOnOuterArc(bySide("left"), cx, cy, outerAnchor, outerBulge, outerSpan, "left"),
-      18,
-      cy
-    );
-    const rightDrivers = spreadByY(
-      placeDriversOnOuterArc(bySide("right"), cx, cy, outerAnchor, outerBulge, outerSpan, "right"),
-      18,
-      cy
-    );
-    [...leftDrivers, ...rightDrivers].forEach(({ d, x, y, comboName }) => {
+    driverPts.forEach(({ d, x, y, comboName }) => {
       aIdx += 1;
       const node = {
         id: `A${aIdx}`,
@@ -276,7 +269,7 @@
         name: c.name,
         type: "C",
         x: cx + (i % 2 === 0 ? -6 : 6),
-        y: cy + (i === 0 ? -34 : 34),
+        y: cy + (i === 0 ? -28 : 28),
         desc: c.desc,
         tier: "Core C · Autonomic Kernel",
         why: c.why,
