@@ -18,31 +18,31 @@
     </linearGradient>
   </defs>
   <rect width="960" height="520" fill="url(#bg1)" rx="16"/>
-  <text x="480" y="36" text-anchor="middle" fill="#e2e8f0" font-family="system-ui,sans-serif" font-size="18" font-weight="700">Bob Switchboard  Raw Drivers ’ Combos ’ Governance</text>
+  <text x="480" y="36" text-anchor="middle" fill="#e2e8f0" font-family="system-ui,sans-serif" font-size="18" font-weight="700">Bob Switchboard Â· Raw Drivers Â· Combos Â· Governance</text>
 
   <!-- Column A -->
-  <text x="120" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">LAYER A · DRIVERS</text>
+  <text x="120" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">LAYER A Â· DRIVERS</text>
   <g fill="#0c4a6e" stroke="#38bdf8" stroke-width="1.2">
-    <rect x="40" y="90" width="160" height="28" rx="6"/><text x="120" y="108" text-anchor="middle" fill="#e0f2fe" font-size="11">rtk · context-mode</text>
-    <rect x="40" y="130" width="160" height="28" rx="6"/><text x="120" y="148" text-anchor="middle" fill="#e0f2fe" font-size="11">graft · ast-crux</text>
-    <rect x="40" y="170" width="160" height="28" rx="6"/><text x="120" y="188" text-anchor="middle" fill="#e0f2fe" font-size="11">mnemosyne · weknora</text>
-    <rect x="40" y="210" width="160" height="28" rx="6"/><text x="120" y="228" text-anchor="middle" fill="#e0f2fe" font-size="11">oxlint · ocr · bugbot</text>
-    <rect x="40" y="250" width="160" height="28" rx="6"/><text x="120" y="268" text-anchor="middle" fill="#e0f2fe" font-size="11">worktrunk · superlogic</text>
-    <rect x="40" y="290" width="160" height="28" rx="6"/><text x="120" y="308" text-anchor="middle" fill="#e0f2fe" font-size="11">cua · playwright · artemis</text>
+    <rect x="40" y="90" width="160" height="28" rx="6"/><text x="120" y="108" text-anchor="middle" fill="#e0f2fe" font-size="11">rtk Â· context-mode</text>
+    <rect x="40" y="130" width="160" height="28" rx="6"/><text x="120" y="148" text-anchor="middle" fill="#e0f2fe" font-size="11">graft Â· ast-crux</text>
+    <rect x="40" y="170" width="160" height="28" rx="6"/><text x="120" y="188" text-anchor="middle" fill="#e0f2fe" font-size="11">mnemosyne Â· weknora</text>
+    <rect x="40" y="210" width="160" height="28" rx="6"/><text x="120" y="228" text-anchor="middle" fill="#e0f2fe" font-size="11">oxlint Â· ocr Â· bugbot</text>
+    <rect x="40" y="250" width="160" height="28" rx="6"/><text x="120" y="268" text-anchor="middle" fill="#e0f2fe" font-size="11">worktrunk Â· superlogic</text>
+    <rect x="40" y="290" width="160" height="28" rx="6"/><text x="120" y="308" text-anchor="middle" fill="#e0f2fe" font-size="11">cua Â· playwright Â· artemis</text>
   </g>
 
   <!-- Column B -->
-  <text x="480" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">LAYER B · COMBOS</text>
+  <text x="480" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">LAYER B Â· COMBOS</text>
   <g fill="#431407" stroke="#fb923c" stroke-width="1.5">
     <rect x="360" y="100" width="240" height="32" rx="8"/><text x="480" y="120" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Token Diet</text>
-    <rect x="360" y="148" width="240" height="32" rx="8"/><text x="480" y="168" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">AST Graph · Blast Radius</text>
-    <rect x="360" y="196" width="240" height="32" rx="8"/><text x="480" y="216" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Invariant Lock · Audit Pipeline</text>
-    <rect x="360" y="244" width="240" height="32" rx="8"/><text x="480" y="264" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Causal Loop · Gesture Trace</text>
-    <rect x="360" y="292" width="240" height="32" rx="8"/><text x="480" y="312" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Worktree ISO · Surgical Fixer</text>
+    <rect x="360" y="148" width="240" height="32" rx="8"/><text x="480" y="168" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">AST Graph Â· Blast Radius</text>
+    <rect x="360" y="196" width="240" height="32" rx="8"/><text x="480" y="216" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Invariant Lock Â· Audit Pipeline</text>
+    <rect x="360" y="244" width="240" height="32" rx="8"/><text x="480" y="264" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Causal Loop Â· Gesture Trace</text>
+    <rect x="360" y="292" width="240" height="32" rx="8"/><text x="480" y="312" text-anchor="middle" fill="#ffedd5" font-size="12" font-weight="600">Worktree ISO Â· Surgical Fixer</text>
   </g>
 
   <!-- Column C -->
-  <text x="840" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">CORE C · KERNEL</text>
+  <text x="840" y="72" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="0.08em">CORE C Â· KERNEL</text>
   <g fill="#422006" stroke="#facc15" stroke-width="1.8">
     <rect x="760" y="140" width="160" height="48" rx="10"/><text x="840" y="162" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">Contract Gate</text><text x="840" y="178" text-anchor="middle" fill="#fde68a" font-size="9">requirements + acceptance</text>
     <rect x="760" y="220" width="160" height="48" rx="10"/><text x="840" y="242" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">Forensic Kernel</text><text x="840" y="258" text-anchor="middle" fill="#fde68a" font-size="9">bob + task-supervisor</text>
@@ -57,5 +57,5 @@
   <path d="M600 212 Q700 200 760 244" fill="none" stroke="url(#amber)" stroke-width="1.8" opacity="0.75"/>
   <path d="M600 260 Q720 280 760 244" fill="none" stroke="url(#violet)" stroke-width="1.2" opacity="0.5" stroke-dasharray="4 4"/>
 
-  <text x="480" y="400" text-anchor="middle" fill="#64748b" font-size="11">Drivers feed combos inward · Combos mesh peer-to-peer · Kernel governs loss = 0</text>
+  <text x="480" y="400" text-anchor="middle" fill="#64748b" font-size="11">Drivers feed combos inward Â· Combos mesh peer-to-peer Â· Kernel governs loss = 0</text>
 </svg>

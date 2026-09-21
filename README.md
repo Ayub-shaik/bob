@@ -39,9 +39,11 @@ Bob organizes tools into **three concentric tiers**:
 
 Peer **B↔B mesh** links propagate invariants (e.g. AST Graph ↔ Audit Pipeline) before code lands.
 
-![Bob telemetry neural graph — A→B→C with B↔B interlinking](diagrams/03_concentric_neural_graph.jpg)
+![Circular cross-connect ring — 6 combos with synaptic hub](diagrams/02_circular_ring_crossconnect.png)
 
-Live interactive version: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
+Live interactive A→B→C graph: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
+
+> **Note:** GitHub does not render SVG in README images. Use the `.png` / `.jpg` files here; `diagrams/*.svg` are editable sources (open the file on GitHub to preview).
 
 ---
 
@@ -206,7 +208,7 @@ bob/
 │   ├── bob.mdc               # Always-on trigger (Cursor)
 │   ├── token-diet.mdc        # Read/build log caps
 │   └── empirical-verification-invariants.mdc
-└── diagrams/                 # Architecture graphs (PNG/JPG for README; SVG source)
+└── diagrams/                 # PNG/JPG for README; SVG sources (regen 02: scripts/render-diagram-02.py)
 ```
 
 ---
