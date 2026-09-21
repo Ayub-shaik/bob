@@ -227,7 +227,8 @@ bob/
 │   ├── install.sh                     # Automated 1-step installer
 │   └── check-mcp.sh                   # MCP & driver connectivity diagnostic tool
 ├── bin/
-│   └── bob-audit                      # Standalone CLI forensic audit script
+│   ├── bob-audit                      # Standalone CLI forensic audit script
+│   └── bob-telemetry                  # Universal telemetry logger & stats CLI
 ├── skills/
 │   └── bob/
 │       └── SKILL.md                   # Core forensic audit & correction skill

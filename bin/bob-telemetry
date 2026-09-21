@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Bob Universal Telemetry & Analytics CLI
+# ==============================================================================
+set -euo pipefail
+
+TELEMETRY_DIR="${HOME}/.bob/telemetry"
+EVENTS_FILE="${TELEMETRY_DIR}/events.jsonl"
+
+mkdir -p "$TELEMETRY_DIR"
+touch "$EVENTS_FILE"
+
+show_help() {
+    cat << 'EOF'
+Bob Telemetry & Analytics CLI
+
+Usage:
+  bob-telemetry log --query <text> --used <tokens> --saved <tokens> --category <cat>
+  bob-telemetry stats [--today | --all]
+  bob-telemetry clear
+
+Options:
+  --today       Show telemetry summary for today only (default)
+  --all         Show cumulative lifetime telemetry summary
+  --json        Output raw JSON summary
+EOF
+}
+
+cmd_log() {
+    local query=""
+    local used=0
+    local saved=0
+    local category="audit"
+    local timestamp
+    timestamp=$(date -Iseconds)
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --query) query="$2"; shift 2 ;;
+            --used) used="$2"; shift 2 ;;
+            --saved) saved="$2"; shift 2 ;;
+            --category) category="$2"; shift 2 ;;
+            *) shift ;;
+        esac
+    done
+
+    if [[ -z "$query" ]]; then
+        echo "Error: --query is required" >&2
+        exit 1
+    fi
+
+    # Append event to jsonl
+    node -e '
+        const fs = require("fs");
+        const event = {
+            timestamp: process.argv[1],
+            query: process.argv[2],
+            used: parseInt(process.argv[3], 10) || 0,
+            saved: parseInt(process.argv[4], 10) || 0,
+            category: process.argv[5] || "audit"
+        };
+        fs.appendFileSync(process.argv[6], JSON.stringify(event) + "\n");
+    ' "$timestamp" "$query" "$used" "$saved" "$category" "$EVENTS_FILE"
+
+    echo "Logged Bob turn telemetry: used=${used}, saved=${saved}"
+}
+
+cmd_stats() {
+    local filter="${1:---today}"
+
+    node -e '
+        const fs = require("fs");
+        const eventsPath = process.argv[1];
+        const filter = process.argv[2];
+
+        if (!fs.existsSync(eventsPath)) {
+            console.log("No telemetry events recorded yet.");
+            process.exit(0);
+        }
+
+        const lines = fs.readFileSync(eventsPath, "utf-8").trim().split("\n").filter(Boolean);
+        if (lines.length === 0) {
+            console.log("No telemetry events recorded yet.");
+            process.exit(0);
+        }
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const events = lines.map(l => {
+            try { return JSON.parse(l); } catch(e) { return null; }
+        }).filter(Boolean).filter(e => {
+            if (filter === "--all") return true;
+            return e.timestamp && e.timestamp.startsWith(todayStr);
+        });
+
+        if (events.length === 0) {
+            console.log(`No telemetry events recorded for ${todayStr}. Use --all to see lifetime stats.`);
+            process.exit(0);
+        }
+
+        let totalUsed = 0;
+        let totalSaved = 0;
+
+        console.log("========================================================================================");
+        console.log("                           BOB AUTONOMIC TELEMETRY LEDGER                               ");
+        console.log("========================================================================================");
+        console.log(`Period: ${filter === "--all" ? "Lifetime" : "Today (" + todayStr + ")"} | Turns Recorded: ${events.length}\n`);
+
+        console.log("Turn   Category     Tokens Used   Tokens Saved   Net Efficiency   Query");
+        console.log("----------------------------------------------------------------------------------------");
+
+        events.forEach((ev, idx) => {
+            totalUsed += ev.used;
+            totalSaved += ev.saved;
+            const eff = (ev.used + ev.saved) > 0 
+                ? ((ev.saved / (ev.used + ev.saved)) * 100).toFixed(1) + "%" 
+                : "0.0%";
+            const q = ev.query.length > 25 ? ev.query.slice(0, 22) + "..." : ev.query;
+            console.log(
+                `#${String(idx + 1).padEnd(5)} ` +
+                `${(ev.category || "audit").padEnd(12)} ` +
+                `${String(ev.used).padEnd(13)} ` +
+                `${String(ev.saved).padEnd(14)} ` +
+                `${eff.padEnd(16)} ` +
+                `${q}`
+            );
+        });
+
+        const totalEff = (totalUsed + totalSaved) > 0 
+            ? ((totalSaved / (totalUsed + totalSaved)) * 100).toFixed(1) + "%" 
+            : "0.0%";
+        const dollarSavings = ((totalSaved / 1000000) * 15).toFixed(2); // estimated ~$15/1M frontier tokens
+
+        console.log("----------------------------------------------------------------------------------------");
+        console.log(`TOTALS:             ${String(totalUsed).padEnd(13)} ${String(totalSaved).padEnd(14)} ${totalEff.padEnd(16)}`);
+        console.log(`Estimated Dollar Value Saved: ~$${dollarSavings} USD`);
+        console.log("========================================================================================\n");
+    ' "$EVENTS_FILE" "$filter"
+}
+
+case "${1:-stats}" in
+    log)
+        shift
+        cmd_log "$@"
+        ;;
+    stats)
+        shift
+        cmd_stats "${1:---today}"
+        ;;
+    clear)
+        > "$EVENTS_FILE"
+        echo "Telemetry history cleared."
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        show_help
+        exit 1
+        ;;
+esac

@@ -39,19 +39,25 @@ fi
 log_succ "Core environment dependencies found."
 echo ""
 
-# 2. Install Bob Core Skill and Rules to Cursor
-log_info "2/5: Linking Bob skill & trigger rules into Cursor..."
+# 2. Install Bob Core Skill and Rules to Cursor & Claude Code
+log_info "2/5: Linking Bob skill, rules & telemetry into system..."
 
 CURSOR_SKILLS_DIR="${HOME}/.cursor/skills/bob"
 CURSOR_RULES_DIR="${HOME}/.cursor/rules"
+CLAUDE_SKILLS_DIR="${HOME}/.claude/skills/bob"
+LOCAL_BIN_DIR="${HOME}/.local/bin"
 
-mkdir -p "$CURSOR_SKILLS_DIR" "$CURSOR_RULES_DIR"
+mkdir -p "$CURSOR_SKILLS_DIR" "$CURSOR_RULES_DIR" "$CLAUDE_SKILLS_DIR" "$LOCAL_BIN_DIR"
 
 cp "$REPO_ROOT/skills/bob/SKILL.md" "$CURSOR_SKILLS_DIR/SKILL.md"
+cp "$REPO_ROOT/skills/bob/SKILL.md" "$CLAUDE_SKILLS_DIR/SKILL.md"
 cp "$REPO_ROOT/rules/bob.mdc" "$CURSOR_RULES_DIR/bob.mdc"
+cp "$REPO_ROOT/bin/bob-telemetry" "$LOCAL_BIN_DIR/bob-telemetry"
+ln -sf "$LOCAL_BIN_DIR/bob-telemetry" "$LOCAL_BIN_DIR/bob"
 
-log_succ "Bob skill installed to: $CURSOR_SKILLS_DIR/SKILL.md"
+log_succ "Bob skill installed to: $CURSOR_SKILLS_DIR/SKILL.md and $CLAUDE_SKILLS_DIR/SKILL.md"
 log_succ "Bob rule installed to:  $CURSOR_RULES_DIR/bob.mdc"
+log_succ "Bob telemetry CLI installed to: $LOCAL_BIN_DIR/bob"
 echo ""
 
 # 3. Install Token-Saving CLI Drivers (rtk & context-mode)

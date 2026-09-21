@@ -38,6 +38,9 @@ In a repository with hundreds of files and tens of thousands of lines of code, B
    - Calls `mnemosyne_recall` with the project prefix (e.g. `project <topic>`) to pull past architectural decisions, known quirks, and runbook entries.
 4. **Targeted Reading Only**:
    - Bob only opens source files at the exact line ranges identified by Graft (never entire files).
+5. **Noisy Command & Build Output Virtualization**:
+   - Bob NEVER allows raw long-running compilation commands (e.g. Gradle, Docker build, APK packaging, full test suites) to stream thousands of lines of uncompressed stdout into the context window.
+   - All noisy commands MUST redirect output to a log file in `/tmp/` and inspect only the exit code, duration, and error crux or summary tail.
 
 ### Step 2: Code Reality Check (What actually happened?)
 Do not trust git commit messages or assistant summaries. Inspect repository evidence:
