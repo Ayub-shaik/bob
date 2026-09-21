@@ -63,6 +63,8 @@
     bc: { base: "#5a5440", lit: "#908860", w: 0.9 },
   };
 
+  const GLOW_STROKE = { A: "#6a9ab8", B: "#b08068", C: "#c4b060" };
+
   function mount(opts) {
     const svg = opts.svg;
     const inspector = opts.inspector;
@@ -200,17 +202,30 @@
         selectNode(node);
       });
       g.addEventListener("mouseenter", () => {
-        hoverName = node.name;
-        applyEdgeStyles();
+        if (!selected) {
+          hoverName = node.name;
+          applyEdgeStyles();
+        }
       });
       g.addEventListener("mouseleave", () => {
-        hoverName = null;
-        applyEdgeStyles();
+        if (!selected) {
+          hoverName = null;
+          applyEdgeStyles();
+        }
       });
 
       nodesG.appendChild(g);
-      nodeEls.set(node.name, { g, rect, node });
+      nodeEls.set(node.name, { g, rect, text, node });
     });
+
+    function directNeighbors(name) {
+      const set = new Set([name]);
+      edges.forEach((e) => {
+        if (e.from === name) set.add(e.to);
+        if (e.to === name) set.add(e.from);
+      });
+      return set;
+    }
 
     function redrawEdges() {
       edgeEls.forEach(({ edge, path }) => {
@@ -222,22 +237,10 @@
     }
 
     function applyEdgeStyles() {
-      const focus = hoverName || (selected ? selected.name : null);
-      const glow = focus
-        ? selected?.type === "C"
-          ? "#facc15"
-          : selected?.type === "B"
-            ? "#fb923c"
-            : "#38bdf8"
-        : hoverName
-          ? byName[hoverName]?.type === "C"
-            ? "#facc15"
-            : byName[hoverName]?.type === "B"
-              ? "#fb923c"
-              : "#38bdf8"
-          : null;
-
+      const focus = selected ? selected.name : hoverName;
+      const litSet = focus ? directNeighbors(focus) : null;
       const focusType = focus ? byName[focus]?.type : null;
+      const clicked = Boolean(selected);
 
       edgeEls.forEach(({ edge, path }) => {
         const hit = focus && (edge.from === focus || edge.to === focus);
@@ -247,25 +250,58 @@
           const showMesh = focusType === "B" && hit;
           path.setAttribute("stroke", showMesh ? spec.lit : spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", showMesh ? "1" : "0");
+          path.setAttribute("opacity", showMesh ? (clicked ? "0.95" : "1") : "0");
           return;
         }
 
-        if (hit && glow) {
+        if (hit) {
           path.setAttribute("stroke", spec.lit);
-          path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", "1");
+          path.setAttribute("stroke-width", clicked ? "1.1" : String(spec.w));
+          path.setAttribute("opacity", clicked ? "0.95" : "1");
         } else {
           path.setAttribute("stroke", spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", focus ? "0.45" : "0.75");
+          path.setAttribute("opacity", focus ? (clicked ? "0.18" : "0.45") : "0.75");
         }
       });
 
-      nodeEls.forEach(({ rect, node }, name) => {
-        const on = focus === name;
-        rect.setAttribute("stroke-width", on ? "1.8" : String(nodeStyle(node).sw));
-        rect.setAttribute("stroke-dasharray", on ? "4 2" : "none");
+      nodeEls.forEach(({ rect, text, node }, name) => {
+        const st = nodeStyle(node);
+        const isFocus = focus === name;
+        const isNeighbor = litSet && litSet.has(name) && !isFocus;
+
+        if (!focus) {
+          rect.setAttribute("fill", st.fill);
+          rect.setAttribute("stroke", st.stroke);
+          rect.setAttribute("stroke-width", String(st.sw));
+          rect.setAttribute("opacity", "1");
+          text.setAttribute("fill", st.text);
+          text.setAttribute("opacity", "1");
+          return;
+        }
+
+        if (isFocus) {
+          rect.setAttribute("fill", st.fill);
+          rect.setAttribute("stroke", GLOW_STROKE[node.type]);
+          rect.setAttribute("stroke-width", clicked ? "1.5" : "1.3");
+          rect.setAttribute("opacity", "1");
+          text.setAttribute("fill", st.text);
+          text.setAttribute("opacity", "1");
+        } else if (isNeighbor) {
+          rect.setAttribute("fill", st.fill);
+          rect.setAttribute("stroke", GLOW_STROKE[node.type]);
+          rect.setAttribute("stroke-width", "1.1");
+          rect.setAttribute("opacity", clicked ? "0.82" : "0.9");
+          text.setAttribute("fill", st.text);
+          text.setAttribute("opacity", clicked ? "0.82" : "0.9");
+        } else {
+          rect.setAttribute("fill", st.fill);
+          rect.setAttribute("stroke", st.stroke);
+          rect.setAttribute("stroke-width", String(st.sw));
+          rect.setAttribute("opacity", clicked ? "0.22" : "0.45");
+          text.setAttribute("fill", st.text);
+          text.setAttribute("opacity", clicked ? "0.22" : "0.45");
+        }
       });
     }
 

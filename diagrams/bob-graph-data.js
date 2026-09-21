@@ -140,7 +140,7 @@
   function placeDriversInBand(combo, drivers, bandX, cx) {
     const lineGap = 18;
     const totalH = Math.max(0, (drivers.length - 1) * lineGap);
-    const subCol = drivers.length > 2 ? 48 : 0;
+    const subCol = drivers.length > 1 ? 44 : 0;
     const left = combo.x < cx;
     return drivers.map((d, i) => ({
       d,
