@@ -138,13 +138,13 @@
    * Drivers stay in the outer A band only — vertical stack beside combo Y, never into B.
    */
   function placeDriversInBand(combo, drivers, bandX, cx) {
-    const lineGap = 17;
+    const lineGap = 18;
     const totalH = Math.max(0, (drivers.length - 1) * lineGap);
     const subCol = drivers.length > 2 ? 48 : 0;
     const left = combo.x < cx;
     return drivers.map((d, i) => ({
       d,
-      x: bandX + (i % 2 === 0 ? 0 : left ? subCol : -subCol),
+      x: bandX + (i % 2 === 0 ? 0 : left ? -subCol : subCol),
       y: combo.y - totalH / 2 + i * lineGap,
       comboName: combo.name,
     }));
@@ -169,8 +169,24 @@
     });
   }
 
-  /** Same-tier nudge — bias vertical separation so X bands stay clean. */
-  function resolveOverlapsInBand(nodes, maxIter = 60) {
+  /** Hard gap between A | B | C so tiers never bleed together. */
+  function enforceLayerGaps(nodes, bands, gap = 12) {
+    nodes.forEach((n) => {
+      const half = nodeDims(n).w / 2;
+      if (n.type === "B" && n.x < bands.cx) {
+        n.x = Math.min(n.x, bands.center.min - gap - half);
+      } else if (n.type === "B" && n.x > bands.cx) {
+        n.x = Math.max(n.x, bands.center.max + gap + half);
+      } else if (n.type === "A" && n.x < bands.cx) {
+        n.x = Math.min(n.x, bands.leftB.min - gap - half);
+      } else if (n.type === "A" && n.x > bands.cx) {
+        n.x = Math.max(n.x, bands.rightB.max + gap + half);
+      }
+    });
+  }
+
+  /** Same-tier nudge — vertical only so X columns never drift across layers. */
+  function resolveOverlapsInBand(nodes, maxIter = 100) {
     for (let iter = 0; iter < maxIter; iter++) {
       let moved = false;
       for (let i = 0; i < nodes.length; i++) {
@@ -180,16 +196,11 @@
           if (!rectsOverlap(a, b, 3)) continue;
           const da = nodeDims(a);
           const db = nodeDims(b);
-          const dx = b.x - a.x || 0.01;
           const dy = b.y - a.y || 0.01;
-          const dist = Math.hypot(dx, dy) || 1;
-          const needY = (da.h + db.h) / 2 + 6 - Math.abs(dy);
-          const push = Math.max(needY, 5);
-          const px = (dx / dist) * push * 0.15;
-          const py = (dy / dist) * push * 0.85;
-          a.x -= px;
+          const needY = (da.h + db.h) / 2 + 7 - Math.abs(dy);
+          const push = Math.max(needY, 6);
+          const py = (dy > 0 ? 1 : -1) * push * 0.5;
           a.y -= py;
-          b.x += px;
           b.y += py;
           moved = true;
         }
@@ -203,17 +214,17 @@
     const edges = [];
     const byName = {};
 
-    const width = 1480;
+    const width = 1200;
     const height = 500;
     const cx = width / 2;
     const cy = height / 2;
     const bands = {
       cx,
-      leftA: { min: 44, max: 208, x: 132 },
-      leftB: { min: 258, max: 388, x: 318, xAlt: 348 },
-      center: { min: cx - 76, max: cx + 76 },
-      rightB: { min: width - 388, max: width - 258, x: width - 318, xAlt: width - 348 },
-      rightA: { min: width - 208, max: width - 44, x: width - 132 },
+      leftA: { min: 240, max: 350, x: cx - 258 },
+      leftB: { min: 392, max: 488, x: cx - 126, xAlt: cx - 150 },
+      center: { min: cx - 62, max: cx + 62 },
+      rightB: { min: cx + 112, max: cx + 208, x: cx + 126, xAlt: cx + 150 },
+      rightA: { min: cx + 238, max: cx + 358, x: cx + 258 },
     };
     const leftComboCount = 8;
     const comboGap = 20;
@@ -316,9 +327,15 @@
 
     const aNodes = nodes.filter((n) => n.type === "A");
     const bNodes = nodes.filter((n) => n.type === "B");
-    resolveOverlapsInBand(aNodes);
     resolveOverlapsInBand(bNodes);
     enforceBands(nodes, bands);
+    enforceLayerGaps(nodes, bands);
+    resolveOverlapsInBand(aNodes);
+    enforceBands(nodes, bands);
+    enforceLayerGaps(nodes, bands);
+    resolveOverlapsInBand(aNodes);
+    enforceBands(nodes, bands);
+    enforceLayerGaps(nodes, bands);
 
     return {
       nodes,
