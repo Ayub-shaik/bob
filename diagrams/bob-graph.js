@@ -49,9 +49,9 @@
   }
 
   const STROKE = {
-    ab: { base: "rgba(56,189,248,0.38)", lit: "#67e8f9", w: 1 },
-    bb: { base: "rgba(251,146,60,0.45)", lit: "#fdba74", w: 1.1 },
-    bc: { base: "rgba(250,204,21,0.5)", lit: "#fde047", w: 1 },
+    ab: { base: "rgba(90,120,140,0.32)", lit: "rgba(120,155,175,0.85)", w: 1 },
+    bb: { base: "rgba(140,100,75,0.34)", lit: "rgba(170,125,95,0.85)", w: 1.1 },
+    bc: { base: "rgba(130,115,70,0.36)", lit: "rgba(165,150,95,0.85)", w: 1 },
   };
 
   function mount(opts) {
@@ -167,16 +167,21 @@
     const nodeEls = new Map();
 
     function nodeStyle(node) {
-      if (node.type === "C") return { w: 108, h: 34, fill: "rgba(42,31,5,0.72)", stroke: "#facc15", fs: 8.5, mono: false, sw: 1.2 };
-      if (node.type === "B") return { w: 92, h: 22, fill: "rgba(59,26,10,0.72)", stroke: "#fb923c", fs: 7.5, mono: false, sw: 1.1 };
+      if (node.type === "C") {
+        return { w: 30, h: 15, fill: "rgba(28,26,20,0.88)", stroke: "rgba(130,118,75,0.5)", fs: 6.5, mono: true, sw: 0.9, text: "#a89a72" };
+      }
+      if (node.type === "B") {
+        return { w: 88, h: 20, fill: "rgba(28,22,18,0.88)", stroke: "rgba(145,105,80,0.48)", fs: 7, mono: false, sw: 0.9, text: "#b8a090" };
+      }
       return {
-        w: Math.max(node.name.length * 5.4 + 14, 58),
-        h: 17,
-        fill: "rgba(8,47,73,0.72)",
-        stroke: "#38bdf8",
-        fs: 7,
+        w: Math.max(node.name.length * 5.2 + 12, 54),
+        h: 16,
+        fill: "rgba(14,22,30,0.88)",
+        stroke: "rgba(95,125,145,0.45)",
+        fs: 6.5,
         mono: true,
-        sw: 1,
+        sw: 0.85,
+        text: "#8fa3b0",
       };
     }
 
@@ -200,9 +205,9 @@
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("dominant-baseline", "central");
       text.setAttribute("font-size", `${st.fs}px`);
-      text.setAttribute("font-weight", node.type === "C" ? "800" : "600");
+      text.setAttribute("font-weight", "500");
       text.setAttribute("font-family", st.mono ? "ui-monospace,monospace" : "system-ui,sans-serif");
-      text.setAttribute("fill", node.type === "C" ? "#fef08a" : node.type === "B" ? "#ffedd5" : "#e0f2fe");
+      text.setAttribute("fill", st.text);
       text.textContent = node.type === "C" ? node.id : node.name;
 
       g.appendChild(rect);
