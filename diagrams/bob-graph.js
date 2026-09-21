@@ -306,77 +306,94 @@
       });
     }
 
-    function clearDetailPanels() {
-      nodeEls.forEach((el) => {
-        if (el.detailG) {
-          el.detailG.remove();
-          el.detailG = null;
-        }
-      });
-    }
-
-    function showDetailPanel(node) {
-      clearDetailPanels();
-      const el = nodeEls.get(node.name);
-      if (!el) return;
-      const st = nodeStyle(node);
-      const panelW = Math.max(st.w + 48, node.type === "C" ? 210 : 175);
-      const panelH = 62;
-      const top = st.h / 2 + 4;
-
-      const detailG = document.createElementNS(NS, "g");
-      detailG.setAttribute("class", "bob-detail");
-
-      const panel = document.createElementNS(NS, "rect");
-      panel.setAttribute("x", -panelW / 2);
-      panel.setAttribute("y", top);
-      panel.setAttribute("width", panelW);
-      panel.setAttribute("height", panelH);
-      panel.setAttribute("rx", "4");
-      panel.setAttribute("fill", "#080808");
-      panel.setAttribute("stroke", GLOW_STROKE[node.type]);
-      panel.setAttribute("stroke-width", "0.85");
-
-      const label = document.createElementNS(NS, "text");
-      label.setAttribute("x", 0);
-      label.setAttribute("y", top + 11);
-      label.setAttribute("text-anchor", "middle");
-      label.setAttribute("fill", "#8a8070");
-      label.setAttribute("font-size", "7");
-      label.setAttribute("font-weight", "700");
-      label.setAttribute("letter-spacing", "0.14em");
-      label.setAttribute("font-family", "system-ui,sans-serif");
-      label.textContent = "DETAILS";
-
-      const fo = document.createElementNS(NS, "foreignObject");
-      fo.setAttribute("x", -panelW / 2 + 8);
-      fo.setAttribute("y", top + 16);
-      fo.setAttribute("width", panelW - 16);
-      fo.setAttribute("height", panelH - 20);
-      fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="font-family:system-ui,sans-serif;font-size:9px;line-height:1.45;color:#a8b0b8;overflow:hidden">${esc(node.desc)}</div>`;
-
-      detailG.appendChild(panel);
-      detailG.appendChild(label);
-      detailG.appendChild(fo);
-      detailG.addEventListener("click", (ev) => ev.stopPropagation());
-      el.g.appendChild(detailG);
-      el.detailG = detailG;
-    }
-
     function selectNode(node) {
       selected = node;
       applyEdgeStyles();
-      showDetailPanel(node);
       renderInspector(node);
     }
 
     function clearSelection() {
       selected = null;
-      clearDetailPanels();
       applyEdgeStyles();
       if (inspector) {
         inspector.innerHTML = `<p style="color:#94a3b8;font-size:13px;margin:0">Click any box to inspect wiring, invariants, and peer links. Drag boxes to rearrange; connectors follow.</p>`;
       }
+    }
+
+    function renderInspectorDetails(node) {
+      const p = (html) => `<p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#cbd5e1">${html}</p>`;
+      const sub = (title, html) =>
+        `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:#8a949e;margin-bottom:5px;letter-spacing:0.04em">${title}</div>${html}</div>`;
+
+      if (node.type === "A") {
+        const combo = node.connectedTo?.[0] || node.category || "—";
+        const siblings = edges
+          .filter((e) => e.type === "ab" && e.to === combo && e.from !== node.name)
+          .map((e) => e.from);
+        return `
+          ${sub("ROLE", p(`<strong style="color:#e2e8f0">Layer A raw driver.</strong> <code style="color:#8ab4c8">${esc(node.name)}</code> feeds the <strong style="color:#e8c4b0">${esc(combo)}</strong> subspace combo on the outer tier.`))}
+          ${sub("FUNCTION", p(esc(node.desc)))}
+          ${sub(
+            "INTEGRATION",
+            p(
+              `${esc(node.why)} It sits in the <strong style="color:#e2e8f0">${esc(node.category)}</strong> driver cluster alongside ${siblings.length ? esc(siblings.join(", ")) : "peer drivers in the same category"}.`
+            )
+          )}
+          ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — enforced before any downstream combo logic runs.`))}
+        `;
+      }
+
+      if (node.type === "B") {
+        const drivers = node.inboundA || [];
+        const peers = node.peerB || [];
+        const cores = node.outboundC || [];
+        return `
+          ${sub("ROLE", p(`<strong style="color:#e2e8f0">Layer B subspace combo</strong> <code style="color:#c8b8a8">${esc(node.id || "")}</code> — aggregates ${drivers.length} Layer A driver${drivers.length === 1 ? "" : "s"} into a single autonomic subspace.`))}
+          ${sub("FUNCTION", p(esc(node.desc)))}
+          ${sub(
+            "DRIVER FEEDS (A→B)",
+            p(
+              drivers.length
+                ? `Inbound drivers: <strong style="color:#a8c4d8">${esc(drivers.join(", "))}</strong>. Each streams capability into this combo before any B↔B mesh or B→C kernel traffic.`
+                : "No dedicated drivers — combo operates from mesh and kernel links only."
+            )
+          )}
+          ${sub(
+            "PEER MESH (B↔B)",
+            p(
+              `Mesh peers: <strong style="color:#e8c4b0">${esc(peers.join(", "))}</strong>. ${esc(node.why)} Cross-combo links keep blast radius, audit, and causal traces coherent across subspaces.`
+            )
+          )}
+          ${sub(
+            "KERNEL STREAM (B→C)",
+            p(`Streams invariant telemetry to <strong style="color:#e8d890">${esc(cores.join(", "))}</strong> at the core. The kernel uses this stream for pass/fail gating and forensic routing.`)
+          )}
+          ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — violation halts the pipeline; acceptance-review is the sole Pass authority.`))}
+        `;
+      }
+
+      const inboundCombos = edges
+        .filter((e) => e.type === "bc" && e.to === node.name)
+        .map((e) => e.from)
+        .sort();
+      const driverCount = inboundCombos.reduce((n, c) => n + (byName[c]?.inboundA?.length || 0), 0);
+      return `
+        ${sub("ROLE", p(`<strong style="color:#e2e8f0">Core C autonomic kernel.</strong> ${esc(node.name)} is one of two center kernels — the ${node.id === "C1" ? "contract and loss gate" : "forensic and causal routing"} authority for the entire network.`))}
+        ${sub("FUNCTION", p(esc(node.desc)))}
+        ${sub(
+          "INBOUND COMBOS (B→C)",
+          p(
+            `${inboundCombos.length} combos stream here: <strong style="color:#e8c4b0">${esc(inboundCombos.join(", "))}</strong>. Together they cover ${driverCount} Layer A drivers across the outer tier.`
+          )
+        )}
+        ${sub(
+          "ROUTING & AUTHORITY",
+          p(
+            `${esc(node.why)} When this kernel receives a failed invariant or broken checklist item, it blocks merge and routes forensic orders to Surgical Fixer (B15) via the causal mesh.`
+          )
+        )}
+        ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — this is non-negotiable pipeline law; no combo or driver may override it.`))}
+      `;
     }
 
     function renderInspector(node) {
@@ -390,35 +407,26 @@
       const badge =
         node.type === "C" ? "#facc15" : node.type === "B" ? "#fb923c" : "#38bdf8";
 
-      let links = "";
-      if (node.type === "A" && node.connectedTo) {
-        links = `<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:6px">FEEDS →</div>${node.connectedTo.map((n) => `<button type="button" class="bob-pill" data-t="${esc(n)}">${esc(n)}</button>`).join(" ")}</div>`;
-      } else if (node.type === "B") {
-        links = `
-          <div style="margin-top:12px;font-size:10px;font-weight:700;color:#94a3b8">PEER MESH (B↔B)</div>
-          <div style="margin:6px 0 10px">${(node.peerB || []).map((n) => `<button type="button" class="bob-pill" data-t="${esc(n)}">${esc(n)}</button>`).join(" ")}</div>
-          <div style="font-size:10px;font-weight:700;color:#94a3b8">STREAMS → CORE</div>
-          <div style="margin-top:6px">${(node.outboundC || []).map((n) => `<button type="button" class="bob-pill bob-pill-gold" data-t="${esc(n)}">${esc(n)}</button>`).join(" ")}</div>`;
-      } else if (node.type === "C") {
-        links = `<div style="margin-top:12px;font-size:10px;font-weight:700;color:#94a3b8">SUPERVISES 15 COMBOS</div><p style="font-size:12px;color:#cbd5e1;margin:8px 0 0">All Layer B combos stream invariant telemetry into this kernel.</p>`;
-      }
+      const wiring = directNeighbors(node.name);
+      const wiringPills = [...wiring]
+        .filter((n) => n !== node.name)
+        .map(
+          (n) =>
+            `<button type="button" class="bob-pill${byName[n]?.type === "C" ? " bob-pill-gold" : ""}" data-t="${esc(n)}">${esc(n)}</button>`
+        )
+        .join(" ");
 
       inspector.innerHTML = `
         <div style="margin-bottom:10px"><span style="background:${badge};color:#000;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px">${esc(tier)}</span></div>
-        <h4 style="margin:0 0 10px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
-        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:6px;letter-spacing:0.06em">DETAILS</div>
-          <div style="font-size:13px;line-height:1.55;color:#cbd5e1">${esc(node.desc)}</div>
+        <h4 style="margin:0 0 12px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
+        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:14px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;margin-bottom:12px;letter-spacing:0.12em">DETAILS</div>
+          ${renderInspectorDetails(node)}
         </div>
-        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#8a7860;margin-bottom:6px">WHY CONNECTED</div>
-          <div style="font-size:12px;line-height:1.55;color:#b0b8c0">${esc(node.why)}</div>
+        <div style="margin-top:4px">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:0.06em">CONNECTED</div>
+          <div>${wiringPills || '<span style="color:#64748b;font-size:12px">None</span>'}</div>
         </div>
-        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#707880;margin-bottom:6px">INVARIANT</div>
-          <div style="font-size:12px;color:#e2e8f0;font-style:italic">"${esc(node.invariant)}"</div>
-        </div>
-        ${links}
       `;
       inspector.querySelectorAll(".bob-pill").forEach((btn) => {
         btn.style.cssText =
