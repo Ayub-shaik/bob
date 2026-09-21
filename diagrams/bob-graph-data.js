@@ -64,33 +64,98 @@
   /** Ring neighbor + one cross-chord — enough mesh without hairball. */
   const BB_OFFSETS = [1, 4];
 
+  function nodeDims(node) {
+    if (node.type === "C") {
+      const w = Math.min(Math.max(node.name.length * 4.6 + 16, 108), 148);
+      return { w, h: 22 };
+    }
+    if (node.type === "B") return { w: 88, h: 20 };
+    return { w: Math.max(node.name.length * 5.2 + 12, 54), h: 16 };
+  }
+
+  function rectsOverlap(a, b, pad = 6) {
+    const da = nodeDims(a);
+    const db = nodeDims(b);
+    return (
+      Math.abs(a.x - b.x) < (da.w + db.w) / 2 + pad &&
+      Math.abs(a.y - b.y) < (da.h + db.h) / 2 + pad
+    );
+  }
+
+  /** Spread nodes on Y so boxes never stack on the same row. */
+  function spreadByY(pts, minGap, anchorY) {
+    if (!pts.length) return pts;
+    const sorted = [...pts].sort((p, q) => p.y - q.y);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
+    }
+    const mid = (sorted[0].y + sorted[sorted.length - 1].y) / 2;
+    const shift = anchorY - mid;
+    sorted.forEach((p) => {
+      p.y += shift;
+    });
+    return sorted;
+  }
+
+  /** Push apart any remaining overlaps (keeps tier, nudges along X/Y). */
+  function resolveOverlaps(nodes, maxIter = 80) {
+    for (let iter = 0; iter < maxIter; iter++) {
+      let moved = false;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i];
+          const b = nodes[j];
+          if (!rectsOverlap(a, b, 4)) continue;
+          const da = nodeDims(a);
+          const db = nodeDims(b);
+          const dx = b.x - a.x || 0.01;
+          const dy = b.y - a.y || 0.01;
+          const dist = Math.hypot(dx, dy) || 1;
+          const needX = (da.w + db.w) / 2 + 8 - Math.abs(dx);
+          const needY = (da.h + db.h) / 2 + 8 - Math.abs(dy);
+          const push = Math.max(needX, needY, 4);
+          const px = (dx / dist) * push * 0.5;
+          const py = (dy / dist) * push * 0.5;
+          a.x -= px;
+          a.y -= py;
+          b.x += px;
+          b.y += py;
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+  }
+
   /**
    * Parenthesis arc: `(` on left or `)` on right — bulges outward, opens toward center.
-   * Used for (( outer drivers, ( inner combos … — core … ) inner, )) outer.
+   * Combos alternate in/out (back-forth) along the arc.
    */
-  function parenArc(count, cx, cy, anchor, bulge, span, side) {
+  function parenArc(count, cx, cy, anchor, bulge, span, side, stagger = 34) {
     const pts = [];
     const left = side === "left";
     for (let i = 0; i < count; i++) {
       const t = count === 1 ? 0.5 : i / (count - 1);
       const angle = -Math.PI / 2 + t * Math.PI;
       const bow = bulge * (1 + Math.cos(angle)) / 2;
-      const x = left ? cx - anchor - bow : cx + anchor + bow;
+      const depth = i % 2 === 0 ? 0 : stagger;
+      const x = (left ? cx - anchor - bow + depth : cx + anchor + bow - depth);
       const y = cy + (span * Math.sin(angle)) / 2;
-      pts.push({ x, y, t, side });
+      pts.push({ x, y, t, side, idx: i });
     }
     return pts;
   }
 
-  function placeDriversOnOuterParen(combo, drivers, cx, extraBulge) {
-    const left = combo.x < cx;
-    const fan = Math.min(28, 6 + drivers.length * 3);
-    return drivers.map((d, i) => {
-      const spread = (i - (drivers.length - 1) / 2) * (fan / Math.max(drivers.length, 1));
+  /** One driver per arc slot on the outer paren — zigzag in/out so boxes never stack. */
+  function placeDriversOnOuterArc(entries, cx, cy, anchor, bulge, span, side) {
+    const slots = parenArc(entries.length, cx, cy, anchor, bulge, span, side, 22);
+    return entries.map((entry, i) => {
+      const zig = i % 2 === 0 ? 0 : side === "left" ? 18 : -18;
       return {
-        d,
-        x: combo.x + (left ? -extraBulge : extraBulge) + (left ? -1 : 1) * spread * 0.15,
-        y: combo.y + spread * 0.35,
+        ...entry,
+        x: slots[i].x + zig,
+        y: slots[i].y,
+        side,
       };
     });
   }
@@ -100,13 +165,22 @@
     const edges = [];
     const byName = {};
 
-    const width = 1280;
-    const height = 1000;
+    const width = 1320;
+    const height = 1080;
     const cx = width / 2;
-    const cy = height / 2 + 10;
+    const cy = height / 2 + 20;
     const leftComboCount = 8;
-    const leftInner = parenArc(leftComboCount, cx, cy, 118, 188, 620, "left");
-    const rightInner = parenArc(COMBOS.length - leftComboCount, cx, cy, 118, 188, 620, "right");
+    const comboGap = 34;
+    const leftInner = spreadByY(
+      parenArc(leftComboCount, cx, cy, 128, 178, 680, "left", 38),
+      comboGap,
+      cy
+    );
+    const rightInner = spreadByY(
+      parenArc(COMBOS.length - leftComboCount, cx, cy, 128, 178, 680, "right", 38),
+      comboGap,
+      cy
+    );
     const comboPts = [...leftInner, ...rightInner];
 
     COMBOS.forEach((c, j) => {
@@ -139,27 +213,49 @@
     });
 
     let aIdx = 0;
-    Object.entries(driversByCombo).forEach(([comboName, list]) => {
-      const combo = byName[comboName];
-      if (!combo) return;
-      placeDriversOnOuterParen(combo, list, cx, 118).forEach(({ d, x, y }) => {
-        aIdx += 1;
-        const node = {
-          id: `A${aIdx}`,
-          name: d.name,
-          type: "A",
-          x,
-          y,
-          desc: d.desc,
-          category: d.category,
-          why: d.why,
-          invariant: d.invariant,
-          connectedTo: [comboName],
-        };
-        nodes.push(node);
-        byName[node.name] = node;
-        edges.push({ from: node.name, to: comboName, type: "ab" });
+    const driverEntries = [];
+    DRIVERS.forEach((d) => {
+      const combo = COMBO_BY_NAME[d.category] || COMBOS[0];
+      const comboNode = byName[combo.name];
+      if (!comboNode) return;
+      driverEntries.push({
+        d,
+        comboName: combo.name,
+        side: comboNode.x < cx ? "left" : "right",
+        comboY: comboNode.y,
       });
+    });
+    const bySide = (side) =>
+      driverEntries
+        .filter((e) => e.side === side)
+        .sort((a, b) => a.comboY - b.comboY || a.d.name.localeCompare(b.d.name));
+    const leftDrivers = spreadByY(
+      placeDriversOnOuterArc(bySide("left"), cx, cy, 62, 318, 760, "left"),
+      22,
+      cy
+    );
+    const rightDrivers = spreadByY(
+      placeDriversOnOuterArc(bySide("right"), cx, cy, 62, 318, 760, "right"),
+      22,
+      cy
+    );
+    [...leftDrivers, ...rightDrivers].forEach(({ d, x, y, comboName }) => {
+      aIdx += 1;
+      const node = {
+        id: `A${aIdx}`,
+        name: d.name,
+        type: "A",
+        x,
+        y,
+        desc: d.desc,
+        category: d.category,
+        why: d.why,
+        invariant: d.invariant,
+        connectedTo: [comboName],
+      };
+      nodes.push(node);
+      byName[node.name] = node;
+      edges.push({ from: node.name, to: comboName, type: "ab" });
     });
 
     COMBOS.forEach((_, j) => {
@@ -168,17 +264,13 @@
       });
     });
 
-    const coreOffsets = [
-      { x: -52, y: 0 },
-      { x: 52, y: 0 },
-    ];
     CORE.forEach((c, i) => {
       const node = {
         id: c.id,
         name: c.name,
         type: "C",
-        x: cx + coreOffsets[i].x,
-        y: cy + coreOffsets[i].y,
+        x: cx + (i % 2 === 0 ? -6 : 6),
+        y: cy + (i === 0 ? -58 : 58),
         desc: c.desc,
         tier: "Core C · Autonomic Kernel",
         why: c.why,
@@ -191,6 +283,8 @@
     COMBOS.forEach((combo, j) => {
       edges.push({ from: combo.name, to: CORE[j % 2].name, type: "bc" });
     });
+
+    resolveOverlaps(nodes);
 
     return {
       nodes,
@@ -211,5 +305,5 @@
     };
   }
 
-  global.BOB_GRAPH_DATA = { buildGraph, COMBOS, CORE, DRIVERS };
+  global.BOB_GRAPH_DATA = { buildGraph, nodeDims, COMBOS, CORE, DRIVERS };
 })(typeof window !== "undefined" ? window : globalThis);

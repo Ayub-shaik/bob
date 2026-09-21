@@ -13,20 +13,41 @@
       .replace(/"/g, "&quot;");
   }
 
+  function dimsFor(node) {
+    if (global.BOB_GRAPH_DATA?.nodeDims) return global.BOB_GRAPH_DATA.nodeDims(node);
+    if (node.type === "C") return { w: 120, h: 22 };
+    if (node.type === "B") return { w: 88, h: 20 };
+    return { w: Math.max(node.name.length * 5.2 + 12, 54), h: 16 };
+  }
+
+  /** Edge attach point on box perimeter facing the other node. */
+  function boxAnchor(node, towardX, towardY) {
+    const { w, h } = dimsFor(node);
+    const dx = towardX - node.x;
+    const dy = towardY - node.y;
+    if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return { x: node.x, y: node.y };
+    const sx = dx !== 0 ? (w / 2) / Math.abs(dx) : Infinity;
+    const sy = dy !== 0 ? (h / 2) / Math.abs(dy) : Infinity;
+    const t = Math.min(sx, sy);
+    return { x: node.x + dx * t, y: node.y + dy * t };
+  }
+
   function edgePath(a, b, type, hub) {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
+    const from = boxAnchor(a, b.x, b.y);
+    const to = boxAnchor(b, a.x, a.y);
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const mx = (from.x + to.x) / 2;
+    const my = (from.y + to.y) / 2;
 
     if (type === "bb") {
-      const cx = mx + dy * 0.18;
-      const cy = my - dx * 0.18;
-      return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
+      const cx = mx + dy * 0.22;
+      const cy = my - dx * 0.22;
+      return `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
     }
 
     if (type === "ab") {
-      return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+      return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
     }
 
     if (hub) {
@@ -35,17 +56,17 @@
       const vx = mx - hx;
       const vy = my - hy;
       const dist = Math.hypot(vx, vy) || 1;
-      const pull = 28;
+      const pull = 36;
       const cpx = mx - (vx / dist) * pull;
       const cpy = my - (vy / dist) * pull;
-      return `M ${a.x} ${a.y} Q ${cpx} ${cpy} ${b.x} ${b.y}`;
+      return `M ${from.x} ${from.y} Q ${cpx} ${cpy} ${to.x} ${to.y}`;
     }
 
-    const c1x = a.x + dx * 0.5;
-    const c1y = a.y + dy * 0.1;
-    const c2x = b.x - dx * 0.5;
-    const c2y = b.y - dy * 0.1;
-    return `M ${a.x} ${a.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${b.x} ${b.y}`;
+    const c1x = from.x + dx * 0.5;
+    const c1y = from.y + dy * 0.1;
+    const c2x = to.x - dx * 0.5;
+    const c2y = to.y - dy * 0.1;
+    return `M ${from.x} ${from.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${to.x} ${to.y}`;
   }
 
   const STROKE = {
@@ -181,15 +202,16 @@
     const nodeEls = new Map();
 
     function nodeStyle(node) {
+      const d = dimsFor(node);
       if (node.type === "C") {
-        return { w: 24, h: 13, fill: "#222018", stroke: "#6a6040", fs: 6, mono: true, sw: 0.8, text: "#c4b890" };
+        return { w: d.w, h: d.h, fill: "#222018", stroke: "#6a6040", fs: 5.8, mono: false, sw: 0.9, text: "#c4b890" };
       }
       if (node.type === "B") {
-        return { w: 88, h: 20, fill: "#241e1a", stroke: "#6a5448", fs: 7, mono: false, sw: 0.9, text: "#c8b8a8" };
+        return { w: d.w, h: d.h, fill: "#241e1a", stroke: "#6a5448", fs: 7, mono: false, sw: 0.9, text: "#c8b8a8" };
       }
       return {
-        w: Math.max(node.name.length * 5.2 + 12, 54),
-        h: 16,
+        w: d.w,
+        h: d.h,
         fill: "#1c2630",
         stroke: "#4a6278",
         fs: 6.5,
@@ -222,7 +244,7 @@
       text.setAttribute("font-weight", "500");
       text.setAttribute("font-family", st.mono ? "ui-monospace,monospace" : "system-ui,sans-serif");
       text.setAttribute("fill", st.text);
-      text.textContent = node.type === "C" ? node.id : node.name;
+      text.textContent = node.name;
 
       g.appendChild(rect);
       g.appendChild(text);
