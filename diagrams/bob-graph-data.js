@@ -203,20 +203,20 @@
     const edges = [];
     const byName = {};
 
-    const width = 1580;
-    const height = 520;
+    const width = 1480;
+    const height = 500;
     const cx = width / 2;
     const cy = height / 2;
     const bands = {
       cx,
-      leftA: { min: 48, max: 230, x: 148 },
-      leftB: { min: 300, max: 430, x: 358, xAlt: 394 },
-      center: { min: cx - 90, max: cx + 90 },
-      rightB: { min: width - 430, max: width - 300, x: width - 358, xAlt: width - 394 },
-      rightA: { min: width - 230, max: width - 48, x: width - 148 },
+      leftA: { min: 44, max: 208, x: 132 },
+      leftB: { min: 258, max: 388, x: 318, xAlt: 348 },
+      center: { min: cx - 76, max: cx + 76 },
+      rightB: { min: width - 388, max: width - 258, x: width - 318, xAlt: width - 348 },
+      rightA: { min: width - 208, max: width - 44, x: width - 132 },
     };
     const leftComboCount = 8;
-    const comboGap = 22;
+    const comboGap = 20;
     const leftYs = bandSlots(leftComboCount, cy, comboGap);
     const rightYs = bandSlots(COMBOS.length - leftComboCount, cy, comboGap);
     const comboPts = [

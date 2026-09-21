@@ -32,41 +32,28 @@
     return { x: node.x + dx * t, y: node.y + dy * t };
   }
 
-  function edgePath(a, b, type, hub) {
+  function edgePath(a, b, type) {
     const from = boxAnchor(a, b.x, b.y);
     const to = boxAnchor(b, a.x, a.y);
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const mx = (from.x + to.x) / 2;
     const my = (from.y + to.y) / 2;
+    const len = Math.hypot(dx, dy) || 1;
 
     if (type === "bb") {
-      const cx = mx + dy * 0.22;
-      const cy = my - dx * 0.22;
-      return `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
-    }
-
-    if (type === "ab" || type === "bc") {
-      const midX = (from.x + to.x) / 2;
-      return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
-    }
-
-    if (hub) {
-      const hx = hub.cx;
-      const hy = hub.cy;
-      const vx = mx - hx;
-      const vy = my - hy;
-      const dist = Math.hypot(vx, vy) || 1;
-      const pull = 36;
-      const cpx = mx - (vx / dist) * pull;
-      const cpy = my - (vy / dist) * pull;
+      const bow = Math.min(len * 0.2, 42);
+      const cpx = mx + (dy / len) * bow;
+      const cpy = my - (dx / len) * bow;
       return `M ${from.x} ${from.y} Q ${cpx} ${cpy} ${to.x} ${to.y}`;
     }
 
-    const c1x = from.x + dx * 0.5;
-    const c1y = from.y + dy * 0.1;
-    const c2x = to.x - dx * 0.5;
-    const c2y = to.y - dy * 0.1;
+    const pull = Math.min(Math.abs(dx) * 0.44, 64);
+    const dir = dx >= 0 ? 1 : -1;
+    const c1x = from.x + dir * pull;
+    const c1y = from.y + dy * 0.12;
+    const c2x = to.x - dir * pull;
+    const c2y = to.y - dy * 0.12;
     return `M ${from.x} ${from.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${to.x} ${to.y}`;
   }
 
@@ -129,6 +116,7 @@
       if (e.offset) path.dataset.offset = String(e.offset);
       path.setAttribute("fill", "none");
       path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
       edgesG.appendChild(path);
       return { edge: e, path };
     });
@@ -229,7 +217,7 @@
         const a = byName[edge.from];
         const b = byName[edge.to];
         if (!a || !b) return;
-        path.setAttribute("d", edgePath(a, b, edge.type, hub));
+        path.setAttribute("d", edgePath(a, b, edge.type));
       });
     }
 
