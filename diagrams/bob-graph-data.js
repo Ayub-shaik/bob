@@ -61,7 +61,22 @@
   ];
 
   const COMBO_BY_NAME = Object.fromEntries(COMBOS.map((c) => [c.name, c]));
-  const BB_OFFSETS = [1, 2, 4, 7];
+  /** Ring neighbor + one cross-chord — enough mesh without hairball. */
+  const BB_OFFSETS = [1, 4];
+
+  /** Even ring for combos so peer links follow the inner band. */
+  function placeCombosRing(count, baseR, cx, cy) {
+    const pts = [];
+    for (let j = 0; j < count; j++) {
+      const angle = (j / count) * 2 * Math.PI - Math.PI / 2 + Math.sin(j * 1.9) * 0.04;
+      const r = baseR + Math.sin(j * 2.4) * 10;
+      pts.push({
+        x: cx + r * Math.cos(angle),
+        y: cy + r * Math.sin(angle) * 0.92,
+      });
+    }
+    return pts;
+  }
 
   /** Organic scatter on a loose ring — reads circular but not a perfect circle. */
   function scatterRing(count, baseR, cx, cy, jitter, phase, squashY) {
@@ -106,11 +121,12 @@
     const innerR = 210;
     const outerR = 355;
 
-    const innerPts = scatterRing(COMBOS.length, innerR, cx, cy, 16, 0.35, 0.92);
+    const innerPts = placeCombosRing(COMBOS.length, innerR, cx, cy);
 
     COMBOS.forEach((c, j) => {
       const inboundA = DRIVERS.filter((d) => d.category === c.name).map((d) => d.name);
       const peerB = BB_OFFSETS.map((off) => COMBOS[(j + off) % COMBOS.length].name);
+      const coreTarget = CORE[j % 2].name;
       const p = innerPts[j];
       const node = {
         id: c.id,
@@ -124,7 +140,7 @@
         invariant: c.invariant,
         inboundA,
         peerB,
-        outboundC: CORE.map((k) => k.name),
+        outboundC: [coreTarget],
       };
       nodes.push(node);
       byName[node.name] = node;
@@ -167,8 +183,8 @@
     });
 
     const coreOffsets = [
-      { x: -42, y: -14 },
-      { x: 44, y: 18 },
+      { x: -22, y: -6 },
+      { x: 22, y: 6 },
     ];
     CORE.forEach((c, i) => {
       const node = {
@@ -184,7 +200,10 @@
       };
       nodes.push(node);
       byName[node.name] = node;
-      COMBOS.forEach((combo) => edges.push({ from: combo.name, to: node.name, type: "bc" }));
+    });
+
+    COMBOS.forEach((combo, j) => {
+      edges.push({ from: combo.name, to: CORE[j % 2].name, type: "bc" });
     });
 
     return {

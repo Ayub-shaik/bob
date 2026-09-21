@@ -50,8 +50,8 @@
 
   const STROKE = {
     ab: { base: "#4a6278", lit: "#8aa4b8", w: 1 },
-    bb: { base: "#6a5448", lit: "#a08068", w: 1.1 },
-    bc: { base: "#6a6040", lit: "#a09058", w: 1 },
+    bb: { base: "#5a4840", lit: "#907060", w: 1 },
+    bc: { base: "#5a5440", lit: "#908860", w: 0.9 },
   };
 
   function mount(opts) {
@@ -86,7 +86,7 @@
     const bg = document.createElementNS(NS, "rect");
     bg.setAttribute("width", width);
     bg.setAttribute("height", height);
-    bg.setAttribute("fill", "#1a2230");
+    bg.setAttribute("fill", "#222b38");
     viewport.appendChild(bg);
 
     // Loose tier guides — suggest outer / inner / center without a rigid circle
@@ -156,7 +156,7 @@
 
     function nodeStyle(node) {
       if (node.type === "C") {
-        return { w: 30, h: 15, fill: "#222018", stroke: "#6a6040", fs: 6.5, mono: true, sw: 0.9, text: "#c4b890" };
+        return { w: 24, h: 13, fill: "#222018", stroke: "#6a6040", fs: 6, mono: true, sw: 0.8, text: "#c4b890" };
       }
       if (node.type === "B") {
         return { w: 88, h: 20, fill: "#241e1a", stroke: "#6a5448", fs: 7, mono: false, sw: 0.9, text: "#c8b8a8" };
