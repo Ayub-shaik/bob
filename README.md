@@ -31,8 +31,6 @@ You are open to use this, and suggest any improvements.**
 
 Bob organizes tools into **three concentric tiers**:
 
-![Concentric neural graph](diagrams/03_concentric_neural_graph.jpg)
-
 1. **Layer A — Raw drivers** (~100 slots): `rtk`, `graft`, `oxlint`, `mnemosyne`, `recordly`, `artemis`, etc.
 2. **Layer B — Subspace combos** (15): Token Diet, AST Graph, Causal Loop, Invariant Lock, Surgical Fixer, …
 3. **Core C — Kernel** (2): Contract & Loss Gate · Forensic & Causal Kernel
@@ -41,7 +39,9 @@ Bob organizes tools into **three concentric tiers**:
 
 Peer **B↔B mesh** links propagate invariants (e.g. AST Graph ↔ Audit Pipeline) before code lands.
 
-![Combo cross-connect ring](diagrams/02_circular_ring_crossconnect.png)
+![Bob telemetry neural graph — A→B→C with B↔B interlinking](diagrams/03_concentric_neural_graph.jpg)
+
+Live interactive version: [TomorrowTools Telemetry → Bob](https://telemetry.tomorrowtools.dev/?view=bob)
 
 ---
 
