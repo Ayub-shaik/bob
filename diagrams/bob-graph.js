@@ -13,18 +13,34 @@
       .replace(/"/g, "&quot;");
   }
 
-  function edgePath(a, b, type) {
+  function edgePath(a, b, type, hub) {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+
     if (type === "bb") {
-      const cx = (a.x + b.x) / 2 + dy * 0.22;
-      const cy = (a.y + b.y) / 2 - dx * 0.22;
+      const cx = mx + dy * 0.18;
+      const cy = my - dx * 0.18;
       return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
     }
-    const c1x = a.x + dx * 0.55;
-    const c1y = a.y;
-    const c2x = b.x - dx * 0.55;
-    const c2y = b.y;
+
+    if (hub) {
+      const hx = hub.cx;
+      const hy = hub.cy;
+      const vx = mx - hx;
+      const vy = my - hy;
+      const dist = Math.hypot(vx, vy) || 1;
+      const pull = type === "ab" ? 55 : 38;
+      const cpx = mx - (vx / dist) * pull;
+      const cpy = my - (vy / dist) * pull;
+      return `M ${a.x} ${a.y} Q ${cpx} ${cpy} ${b.x} ${b.y}`;
+    }
+
+    const c1x = a.x + dx * 0.5;
+    const c1y = a.y + dy * 0.1;
+    const c2x = b.x - dx * 0.5;
+    const c2y = b.y - dy * 0.1;
     return `M ${a.x} ${a.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${b.x} ${b.y}`;
   }
 
@@ -41,7 +57,8 @@
     if (!svg || !global.BOB_GRAPH_DATA) return null;
 
     const graph = global.BOB_GRAPH_DATA.buildGraph();
-    const { nodes, edges, byName, width, height } = graph;
+    const { nodes, edges, byName, width, height, layout } = graph;
+    const hub = layout || { cx: width / 2, cy: height / 2, outerR: 430, innerR: 228 };
 
     let selected = null;
     let hoverName = null;
@@ -82,34 +99,37 @@
     bg.setAttribute("fill", "url(#bobBg)");
     viewport.appendChild(bg);
 
-    // Column guides (not circular rings)
+    // Loose tier guides — suggest outer / inner / center without a rigid circle
+    const zonesG = document.createElementNS(NS, "g");
+    zonesG.setAttribute("opacity", "0.55");
     [
-      { x: 40, w: 280, label: "LAYER A · DRIVERS", color: "rgba(56,189,248,0.08)", stroke: "rgba(56,189,248,0.22)" },
-      { x: 400, w: 440, label: "LAYER B · COMBOS (peer mesh)", color: "rgba(251,146,60,0.06)", stroke: "rgba(251,146,60,0.25)" },
-      { x: 960, w: 260, label: "CORE C · KERNEL", color: "rgba(250,204,21,0.06)", stroke: "rgba(250,204,21,0.28)" },
-    ].forEach((col) => {
-      const r = document.createElementNS(NS, "rect");
-      r.setAttribute("x", col.x);
-      r.setAttribute("y", 48);
-      r.setAttribute("width", col.w);
-      r.setAttribute("height", height - 72);
-      r.setAttribute("rx", 14);
-      r.setAttribute("fill", col.color);
-      r.setAttribute("stroke", col.stroke);
-      r.setAttribute("stroke-width", "1");
-      viewport.appendChild(r);
+      { rx: hub.outerR + 36, ry: (hub.outerR + 36) * 0.86, stroke: "rgba(56,189,248,0.2)", dash: "6 10", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 52 },
+      { rx: hub.innerR + 22, ry: (hub.innerR + 22) * 0.9, stroke: "rgba(251,146,60,0.22)", dash: "4 8", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 18 },
+      { rx: 78, ry: 62, stroke: "rgba(250,204,21,0.28)", dash: "3 6", label: "CENTER · KERNEL", ly: hub.cy - 58 },
+    ].forEach((z) => {
+      const e = document.createElementNS(NS, "ellipse");
+      e.setAttribute("cx", hub.cx);
+      e.setAttribute("cy", hub.cy);
+      e.setAttribute("rx", z.rx);
+      e.setAttribute("ry", z.ry);
+      e.setAttribute("fill", "none");
+      e.setAttribute("stroke", z.stroke);
+      e.setAttribute("stroke-width", "1");
+      e.setAttribute("stroke-dasharray", z.dash);
+      zonesG.appendChild(e);
       const t = document.createElementNS(NS, "text");
-      t.setAttribute("x", col.x + col.w / 2);
-      t.setAttribute("y", 36);
+      t.setAttribute("x", hub.cx);
+      t.setAttribute("y", z.ly);
       t.setAttribute("text-anchor", "middle");
-      t.setAttribute("fill", "#94a3b8");
-      t.setAttribute("font-size", "11");
+      t.setAttribute("fill", "#64748b");
+      t.setAttribute("font-size", "10");
       t.setAttribute("font-weight", "700");
-      t.setAttribute("letter-spacing", "0.08em");
+      t.setAttribute("letter-spacing", "0.1em");
       t.setAttribute("font-family", "system-ui,sans-serif");
-      t.textContent = col.label;
-      viewport.appendChild(t);
+      t.textContent = z.label;
+      zonesG.appendChild(t);
     });
+    viewport.appendChild(zonesG);
 
     const title = document.createElementNS(NS, "text");
     title.setAttribute("x", width / 2);
@@ -224,7 +244,7 @@
         const a = byName[edge.from];
         const b = byName[edge.to];
         if (!a || !b) return;
-        path.setAttribute("d", edgePath(a, b, edge.type));
+        path.setAttribute("d", edgePath(a, b, edge.type, hub));
       });
     }
 

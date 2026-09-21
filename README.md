@@ -29,7 +29,7 @@ You are open to use this, and suggest any improvements.**
 
 ## Architecture (Interactive)
 
-Bob is a **column switchboard** (not a circular ring): Layer A drivers feed Layer B combos, combos have an explicit **B↔B peer mesh**, and everything streams into Core C.
+Bob uses **outer → inner → center** tiers (scattered, not a rigid ring): Layer A drivers on the outside, Layer B combos inside with an explicit **B↔B peer mesh**, Core C at the center.
 
 | Tier | Role |
 |------|------|

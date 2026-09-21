@@ -63,45 +63,66 @@
   const COMBO_BY_NAME = Object.fromEntries(COMBOS.map((c) => [c.name, c]));
   const BB_OFFSETS = [1, 2, 4, 7];
 
+  /** Organic scatter on a loose ring — reads circular but not a perfect circle. */
+  function scatterRing(count, baseR, cx, cy, jitter, phase, squashY) {
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+      const golden = i * 2.399963229728653;
+      const angle = phase + golden + Math.sin(i * 1.71) * 0.22 + Math.cos(i * 0.53) * 0.08;
+      const ripple = Math.sin(i * 2.17) * jitter + Math.cos(i * 1.31) * jitter * 0.55;
+      const r = baseR + ripple + (i % 5) * (jitter * 0.12);
+      const sy = squashY + Math.sin(i * 0.91) * 0.04;
+      pts.push({
+        x: cx + r * Math.cos(angle),
+        y: cy + r * Math.sin(angle) * sy,
+      });
+    }
+    return pts;
+  }
+
   function buildGraph() {
     const nodes = [];
     const edges = [];
     const byName = {};
 
-    const colX = { A: 160, B: 620, C: 1080 };
-    const padY = 56;
-    let yA = 100;
+    const width = 1280;
+    const height = 1000;
+    const cx = width / 2;
+    const cy = height / 2 + 10;
+
+    const outerPts = scatterRing(DRIVERS.length, 430, cx, cy, 52, -0.6, 0.86);
+    const innerPts = scatterRing(COMBOS.length, 228, cx, cy, 28, 0.35, 0.92);
 
     DRIVERS.forEach((d, i) => {
       const combo = COMBO_BY_NAME[d.category] || COMBOS[i % COMBOS.length];
+      const p = outerPts[i];
       const node = {
         id: `A${i + 1}`,
         name: d.name,
         type: "A",
-        x: colX.A,
-        y: yA,
+        x: p.x,
+        y: p.y,
         desc: d.desc,
         category: d.category,
         why: d.why,
         invariant: d.invariant,
         connectedTo: [combo.name],
       };
-      yA += padY;
       nodes.push(node);
       byName[node.name] = node;
       edges.push({ from: node.name, to: combo.name, type: "ab" });
     });
 
-    let yB = 90;
     COMBOS.forEach((c, j) => {
       const inboundA = DRIVERS.filter((d) => d.category === c.name).map((d) => d.name);
       const peerB = BB_OFFSETS.map((off) => COMBOS[(j + off) % COMBOS.length].name);
+      const p = innerPts[j];
       const node = {
         id: c.id,
         name: c.name,
         type: "B",
-        x: colX.B,
-        y: yB,
+        x: p.x,
+        y: p.y,
         desc: c.desc,
         tier: "Layer B · Subspace Combo",
         why: c.why,
@@ -110,27 +131,27 @@
         peerB,
         outboundC: CORE.map((k) => k.name),
       };
-      yB += padY + 6;
       nodes.push(node);
       byName[node.name] = node;
     });
 
     COMBOS.forEach((_, j) => {
       BB_OFFSETS.forEach((off) => {
-        const a = COMBOS[j].name;
-        const b = COMBOS[(j + off) % COMBOS.length].name;
-        edges.push({ from: a, to: b, type: "bb", offset: off });
+        edges.push({ from: COMBOS[j].name, to: COMBOS[(j + off) % COMBOS.length].name, type: "bb", offset: off });
       });
     });
 
-    const coreY = 280;
+    const coreOffsets = [
+      { x: -58, y: -22 },
+      { x: 62, y: 28 },
+    ];
     CORE.forEach((c, i) => {
       const node = {
         id: c.id,
         name: c.name,
         type: "C",
-        x: colX.C,
-        y: coreY + i * 200,
+        x: cx + coreOffsets[i].x,
+        y: cy + coreOffsets[i].y,
         desc: c.desc,
         tier: "Core C · Autonomic Kernel",
         why: c.why,
@@ -141,7 +162,14 @@
       COMBOS.forEach((combo) => edges.push({ from: combo.name, to: node.name, type: "bc" }));
     });
 
-    return { nodes, edges, byName, width: 1280, height: Math.max(yA + 80, yB + 80, 720) };
+    return {
+      nodes,
+      edges,
+      byName,
+      width,
+      height,
+      layout: { cx, cy, outerR: 430, innerR: 228 },
+    };
   }
 
   global.BOB_GRAPH_DATA = { buildGraph, COMBOS, CORE, DRIVERS };
