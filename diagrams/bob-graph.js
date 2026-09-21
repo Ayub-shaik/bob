@@ -93,6 +93,8 @@
     let panY = 0;
     let dragNode = null;
     let dragPointer = null;
+    let panPointer = null;
+    let panMoved = false;
 
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     svg.innerHTML = "";
@@ -406,9 +408,48 @@
       const hint = document.createElement("div");
       hint.style.cssText =
         "position:absolute;bottom:10px;left:12px;font-size:10px;color:#4a525a;pointer-events:none";
-      hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover B to see peer mesh";
+      hint.textContent = "Drag background to pan · Drag boxes to move · Ctrl+scroll zoom";
       container.appendChild(hint);
     }
+
+    function isPanTarget(target) {
+      return target === svg || target === bg || target.parentElement === edgesG;
+    }
+
+    svg.addEventListener("pointerdown", (ev) => {
+      if (dragNode || !isPanTarget(ev.target)) return;
+      panMoved = false;
+      panPointer = {
+        id: ev.pointerId,
+        ox: ev.clientX,
+        oy: ev.clientY,
+        px: panX,
+        py: panY,
+      };
+      svg.setPointerCapture(ev.pointerId);
+      svg.style.cursor = "grabbing";
+    });
+
+    svg.addEventListener("pointermove", (ev) => {
+      if (!panPointer || panPointer.id !== ev.pointerId) return;
+      const dx = ev.clientX - panPointer.ox;
+      const dy = ev.clientY - panPointer.oy;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) panMoved = true;
+      panX = panPointer.px + dx;
+      panY = panPointer.py + dy;
+      applyViewport();
+    });
+
+    svg.addEventListener("pointerup", (ev) => {
+      if (!panPointer || panPointer.id !== ev.pointerId) return;
+      panPointer = null;
+      svg.style.cursor = "";
+      try {
+        svg.releasePointerCapture(ev.pointerId);
+      } catch (_) {
+        /* already released */
+      }
+    });
 
     svg.addEventListener(
       "wheel",
@@ -421,7 +462,8 @@
     );
 
     svg.addEventListener("click", (ev) => {
-      if (ev.target === svg || ev.target === bg) clearSelection();
+      if (panMoved) return;
+      if (isPanTarget(ev.target)) clearSelection();
     });
 
     redrawEdges();
