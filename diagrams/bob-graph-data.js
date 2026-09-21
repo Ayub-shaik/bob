@@ -80,6 +80,20 @@
     return pts;
   }
 
+  function placeDriversNearCombo(cx, cy, combo, drivers, outerR) {
+    const baseAng = Math.atan2(combo.y - cy, combo.x - cx);
+    const fan = Math.min(0.42, 0.075 * drivers.length);
+    return drivers.map((d, i) => {
+      const ang = baseAng + (i - (drivers.length - 1) / 2) * fan;
+      const r = outerR + (i % 2) * 10 + Math.sin(i * 2.4) * 6;
+      return {
+        d,
+        x: cx + r * Math.cos(ang),
+        y: cy + r * Math.sin(ang) * 0.9,
+      };
+    });
+  }
+
   function buildGraph() {
     const nodes = [];
     const edges = [];
@@ -89,29 +103,10 @@
     const height = 1000;
     const cx = width / 2;
     const cy = height / 2 + 10;
+    const innerR = 210;
+    const outerR = 355;
 
-    const outerPts = scatterRing(DRIVERS.length, 430, cx, cy, 52, -0.6, 0.86);
-    const innerPts = scatterRing(COMBOS.length, 228, cx, cy, 28, 0.35, 0.92);
-
-    DRIVERS.forEach((d, i) => {
-      const combo = COMBO_BY_NAME[d.category] || COMBOS[i % COMBOS.length];
-      const p = outerPts[i];
-      const node = {
-        id: `A${i + 1}`,
-        name: d.name,
-        type: "A",
-        x: p.x,
-        y: p.y,
-        desc: d.desc,
-        category: d.category,
-        why: d.why,
-        invariant: d.invariant,
-        connectedTo: [combo.name],
-      };
-      nodes.push(node);
-      byName[node.name] = node;
-      edges.push({ from: node.name, to: combo.name, type: "ab" });
-    });
+    const innerPts = scatterRing(COMBOS.length, innerR, cx, cy, 16, 0.35, 0.92);
 
     COMBOS.forEach((c, j) => {
       const inboundA = DRIVERS.filter((d) => d.category === c.name).map((d) => d.name);
@@ -135,6 +130,36 @@
       byName[node.name] = node;
     });
 
+    const driversByCombo = {};
+    DRIVERS.forEach((d) => {
+      const combo = COMBO_BY_NAME[d.category] || COMBOS[0];
+      (driversByCombo[combo.name] ||= []).push(d);
+    });
+
+    let aIdx = 0;
+    Object.entries(driversByCombo).forEach(([comboName, list]) => {
+      const combo = byName[comboName];
+      if (!combo) return;
+      placeDriversNearCombo(cx, cy, combo, list, outerR).forEach(({ d, x, y }) => {
+        aIdx += 1;
+        const node = {
+          id: `A${aIdx}`,
+          name: d.name,
+          type: "A",
+          x,
+          y,
+          desc: d.desc,
+          category: d.category,
+          why: d.why,
+          invariant: d.invariant,
+          connectedTo: [comboName],
+        };
+        nodes.push(node);
+        byName[node.name] = node;
+        edges.push({ from: node.name, to: comboName, type: "ab" });
+      });
+    });
+
     COMBOS.forEach((_, j) => {
       BB_OFFSETS.forEach((off) => {
         edges.push({ from: COMBOS[j].name, to: COMBOS[(j + off) % COMBOS.length].name, type: "bb", offset: off });
@@ -142,8 +167,8 @@
     });
 
     const coreOffsets = [
-      { x: -58, y: -22 },
-      { x: 62, y: 28 },
+      { x: -42, y: -14 },
+      { x: 44, y: 18 },
     ];
     CORE.forEach((c, i) => {
       const node = {
@@ -168,7 +193,7 @@
       byName,
       width,
       height,
-      layout: { cx, cy, outerR: 430, innerR: 228 },
+      layout: { cx, cy, outerR, innerR },
     };
   }
 

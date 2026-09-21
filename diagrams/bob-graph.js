@@ -25,13 +25,17 @@
       return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
     }
 
+    if (type === "ab") {
+      return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+    }
+
     if (hub) {
       const hx = hub.cx;
       const hy = hub.cy;
       const vx = mx - hx;
       const vy = my - hy;
       const dist = Math.hypot(vx, vy) || 1;
-      const pull = type === "ab" ? 55 : 38;
+      const pull = 28;
       const cpx = mx - (vx / dist) * pull;
       const cpy = my - (vy / dist) * pull;
       return `M ${a.x} ${a.y} Q ${cpx} ${cpy} ${b.x} ${b.y}`;
@@ -73,11 +77,9 @@
 
     const defs = document.createElementNS(NS, "defs");
     defs.innerHTML = `
-      <filter id="bobGlowHot" x="-80%" y="-80%" width="260%" height="260%">
-        <feGaussianBlur stdDeviation="2.5" result="b1"/>
-        <feGaussianBlur in="b1" stdDeviation="5" result="b2"/>
+      <filter id="bobGlowHot" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="1.2" result="b1"/>
         <feMerge>
-          <feMergeNode in="b2"/>
           <feMergeNode in="b1"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
@@ -101,11 +103,11 @@
 
     // Loose tier guides — suggest outer / inner / center without a rigid circle
     const zonesG = document.createElementNS(NS, "g");
-    zonesG.setAttribute("opacity", "0.55");
+    zonesG.setAttribute("opacity", "0.32");
     [
-      { rx: hub.outerR + 36, ry: (hub.outerR + 36) * 0.86, stroke: "rgba(56,189,248,0.2)", dash: "6 10", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 52 },
-      { rx: hub.innerR + 22, ry: (hub.innerR + 22) * 0.9, stroke: "rgba(251,146,60,0.22)", dash: "4 8", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 18 },
-      { rx: 78, ry: 62, stroke: "rgba(250,204,21,0.28)", dash: "3 6", label: "CENTER · KERNEL", ly: hub.cy - 58 },
+      { rx: hub.outerR + 28, ry: (hub.outerR + 28) * 0.86, stroke: "rgba(56,189,248,0.12)", dash: "6 10", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 48 },
+      { rx: hub.innerR + 18, ry: (hub.innerR + 18) * 0.9, stroke: "rgba(251,146,60,0.14)", dash: "4 8", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 16 },
+      { rx: 56, ry: 44, stroke: "rgba(250,204,21,0.16)", dash: "3 6", label: "CENTER · KERNEL", ly: hub.cy - 48 },
     ].forEach((z) => {
       const e = document.createElementNS(NS, "ellipse");
       e.setAttribute("cx", hub.cx);
@@ -165,9 +167,17 @@
     const nodeEls = new Map();
 
     function nodeStyle(node) {
-      if (node.type === "C") return { w: 200, h: 64, fill: "#2a1f05", stroke: "#facc15", fs: 11, mono: false };
-      if (node.type === "B") return { w: 168, h: 40, fill: "#3b1a0a", stroke: "#fb923c", fs: 10, mono: false };
-      return { w: Math.max(node.name.length * 7.2 + 20, 88), h: 28, fill: "#082f49", stroke: "#38bdf8", fs: 9, mono: true };
+      if (node.type === "C") return { w: 108, h: 34, fill: "rgba(42,31,5,0.72)", stroke: "#facc15", fs: 8.5, mono: false, sw: 1.2 };
+      if (node.type === "B") return { w: 92, h: 22, fill: "rgba(59,26,10,0.72)", stroke: "#fb923c", fs: 7.5, mono: false, sw: 1.1 };
+      return {
+        w: Math.max(node.name.length * 5.4 + 14, 58),
+        h: 17,
+        fill: "rgba(8,47,73,0.72)",
+        stroke: "#38bdf8",
+        fs: 7,
+        mono: true,
+        sw: 1,
+      };
     }
 
     nodes.forEach((node) => {
@@ -181,10 +191,10 @@
       rect.setAttribute("y", -st.h / 2);
       rect.setAttribute("width", st.w);
       rect.setAttribute("height", st.h);
-      rect.setAttribute("rx", node.type === "C" ? 12 : 8);
+      rect.setAttribute("rx", node.type === "C" ? 7 : 5);
       rect.setAttribute("fill", st.fill);
       rect.setAttribute("stroke", st.stroke);
-      rect.setAttribute("stroke-width", node.type === "C" ? 2.2 : 1.6);
+      rect.setAttribute("stroke-width", String(st.sw));
 
       const text = document.createElementNS(NS, "text");
       text.setAttribute("text-anchor", "middle");
@@ -275,14 +285,14 @@
         } else {
           path.setAttribute("stroke", spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", focus ? "0.3" : "0.7");
+          path.setAttribute("opacity", focus ? "0.42" : "0.62");
           path.removeAttribute("filter");
         }
       });
 
       nodeEls.forEach(({ rect, node }, name) => {
         const on = focus === name;
-        rect.setAttribute("stroke-width", on ? "3" : node.type === "C" ? "2.2" : "1.6");
+        rect.setAttribute("stroke-width", on ? "1.8" : String(nodeStyle(node).sw));
         rect.setAttribute("stroke-dasharray", on ? "4 2" : "none");
       });
     }
