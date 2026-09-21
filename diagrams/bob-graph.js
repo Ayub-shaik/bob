@@ -187,6 +187,7 @@
         const dy = (ev.clientY - dragPointer.oy) / scale;
         node.x = dragPointer.nx + dx;
         node.y = dragPointer.ny + dy;
+        if (node.type === "C") node.x = hub.cx;
         g.setAttribute("transform", `translate(${node.x},${node.y})`);
         redrawEdges();
       });
@@ -305,14 +306,73 @@
       });
     }
 
+    function clearDetailPanels() {
+      nodeEls.forEach((el) => {
+        if (el.detailG) {
+          el.detailG.remove();
+          el.detailG = null;
+        }
+      });
+    }
+
+    function showDetailPanel(node) {
+      clearDetailPanels();
+      const el = nodeEls.get(node.name);
+      if (!el) return;
+      const st = nodeStyle(node);
+      const panelW = Math.max(st.w + 48, node.type === "C" ? 210 : 175);
+      const panelH = 62;
+      const top = st.h / 2 + 4;
+
+      const detailG = document.createElementNS(NS, "g");
+      detailG.setAttribute("class", "bob-detail");
+
+      const panel = document.createElementNS(NS, "rect");
+      panel.setAttribute("x", -panelW / 2);
+      panel.setAttribute("y", top);
+      panel.setAttribute("width", panelW);
+      panel.setAttribute("height", panelH);
+      panel.setAttribute("rx", "4");
+      panel.setAttribute("fill", "#080808");
+      panel.setAttribute("stroke", GLOW_STROKE[node.type]);
+      panel.setAttribute("stroke-width", "0.85");
+
+      const label = document.createElementNS(NS, "text");
+      label.setAttribute("x", 0);
+      label.setAttribute("y", top + 11);
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("fill", "#8a8070");
+      label.setAttribute("font-size", "7");
+      label.setAttribute("font-weight", "700");
+      label.setAttribute("letter-spacing", "0.14em");
+      label.setAttribute("font-family", "system-ui,sans-serif");
+      label.textContent = "DETAILS";
+
+      const fo = document.createElementNS(NS, "foreignObject");
+      fo.setAttribute("x", -panelW / 2 + 8);
+      fo.setAttribute("y", top + 16);
+      fo.setAttribute("width", panelW - 16);
+      fo.setAttribute("height", panelH - 20);
+      fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="font-family:system-ui,sans-serif;font-size:9px;line-height:1.45;color:#a8b0b8;overflow:hidden">${esc(node.desc)}</div>`;
+
+      detailG.appendChild(panel);
+      detailG.appendChild(label);
+      detailG.appendChild(fo);
+      detailG.addEventListener("click", (ev) => ev.stopPropagation());
+      el.g.appendChild(detailG);
+      el.detailG = detailG;
+    }
+
     function selectNode(node) {
       selected = node;
       applyEdgeStyles();
+      showDetailPanel(node);
       renderInspector(node);
     }
 
     function clearSelection() {
       selected = null;
+      clearDetailPanels();
       applyEdgeStyles();
       if (inspector) {
         inspector.innerHTML = `<p style="color:#94a3b8;font-size:13px;margin:0">Click any box to inspect wiring, invariants, and peer links. Drag boxes to rearrange; connectors follow.</p>`;
@@ -345,8 +405,11 @@
 
       inspector.innerHTML = `
         <div style="margin-bottom:10px"><span style="background:${badge};color:#000;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px">${esc(tier)}</span></div>
-        <h4 style="margin:0 0 8px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
-        <p style="margin:0 0 12px;font-size:13px;line-height:1.55;color:#cbd5e1">${esc(node.desc)}</p>
+        <h4 style="margin:0 0 10px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
+        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:6px;letter-spacing:0.06em">DETAILS</div>
+          <div style="font-size:13px;line-height:1.55;color:#cbd5e1">${esc(node.desc)}</div>
+        </div>
         <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
           <div style="font-size:10px;font-weight:700;color:#8a7860;margin-bottom:6px">WHY CONNECTED</div>
           <div style="font-size:12px;line-height:1.55;color:#b0b8c0">${esc(node.why)}</div>

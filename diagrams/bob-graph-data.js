@@ -310,8 +310,8 @@
         id: c.id,
         name: c.name,
         type: "C",
-        x: cx + (i % 2 === 0 ? -6 : 6),
-        y: cy + (i === 0 ? -28 : 28),
+        x: cx,
+        y: cy + (i === 0 ? -34 : 34),
         desc: c.desc,
         tier: "Core C · Autonomic Kernel",
         why: c.why,
@@ -336,6 +336,9 @@
     resolveOverlapsInBand(aNodes);
     enforceBands(nodes, bands);
     enforceLayerGaps(nodes, bands);
+    nodes.filter((n) => n.type === "C").forEach((n) => {
+      n.x = cx;
+    });
 
     return {
       nodes,
