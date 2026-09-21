@@ -165,19 +165,22 @@
     const edges = [];
     const byName = {};
 
-    const width = 1320;
-    const height = 1080;
+    const width = 1520;
+    const height = 760;
     const cx = width / 2;
-    const cy = height / 2 + 20;
+    const cy = height / 2;
     const leftComboCount = 8;
-    const comboGap = 34;
+    const comboGap = 24;
+    const innerAnchor = 68;
+    const innerBulge = 108;
+    const innerSpan = 440;
     const leftInner = spreadByY(
-      parenArc(leftComboCount, cx, cy, 128, 178, 680, "left", 38),
+      parenArc(leftComboCount, cx, cy, innerAnchor, innerBulge, innerSpan, "left", 22),
       comboGap,
       cy
     );
     const rightInner = spreadByY(
-      parenArc(COMBOS.length - leftComboCount, cx, cy, 128, 178, 680, "right", 38),
+      parenArc(COMBOS.length - leftComboCount, cx, cy, innerAnchor, innerBulge, innerSpan, "right", 22),
       comboGap,
       cy
     );
@@ -229,14 +232,17 @@
       driverEntries
         .filter((e) => e.side === side)
         .sort((a, b) => a.comboY - b.comboY || a.d.name.localeCompare(b.d.name));
+    const outerAnchor = 44;
+    const outerBulge = 200;
+    const outerSpan = 500;
     const leftDrivers = spreadByY(
-      placeDriversOnOuterArc(bySide("left"), cx, cy, 62, 318, 760, "left"),
-      22,
+      placeDriversOnOuterArc(bySide("left"), cx, cy, outerAnchor, outerBulge, outerSpan, "left"),
+      18,
       cy
     );
     const rightDrivers = spreadByY(
-      placeDriversOnOuterArc(bySide("right"), cx, cy, 62, 318, 760, "right"),
-      22,
+      placeDriversOnOuterArc(bySide("right"), cx, cy, outerAnchor, outerBulge, outerSpan, "right"),
+      18,
       cy
     );
     [...leftDrivers, ...rightDrivers].forEach(({ d, x, y, comboName }) => {
@@ -270,7 +276,7 @@
         name: c.name,
         type: "C",
         x: cx + (i % 2 === 0 ? -6 : 6),
-        y: cy + (i === 0 ? -58 : 58),
+        y: cy + (i === 0 ? -34 : 34),
         desc: c.desc,
         tier: "Core C · Autonomic Kernel",
         why: c.why,
@@ -296,10 +302,10 @@
         cx,
         cy,
         paren: {
-          leftOuter: { anchor: 72, bulge: 300, span: 700 },
-          leftInner: { anchor: 118, bulge: 188, span: 620 },
-          rightInner: { anchor: 118, bulge: 188, span: 620 },
-          rightOuter: { anchor: 72, bulge: 300, span: 700 },
+          leftOuter: { anchor: outerAnchor, bulge: outerBulge, span: outerSpan },
+          leftInner: { anchor: innerAnchor, bulge: innerBulge, span: innerSpan },
+          rightInner: { anchor: innerAnchor, bulge: innerBulge, span: innerSpan },
+          rightOuter: { anchor: outerAnchor, bulge: outerBulge, span: outerSpan },
         },
       },
     };

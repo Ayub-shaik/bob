@@ -101,15 +101,15 @@
     defs.innerHTML = ``;
     svg.appendChild(defs);
 
-    const viewport = document.createElementNS(NS, "g");
-    viewport.setAttribute("id", "bobViewport");
-    svg.appendChild(viewport);
+    const chartG = document.createElementNS(NS, "g");
+    chartG.setAttribute("id", "bobChart");
+    svg.appendChild(chartG);
 
     const bg = document.createElementNS(NS, "rect");
     bg.setAttribute("width", width);
     bg.setAttribute("height", height);
     bg.setAttribute("fill", "#000000");
-    viewport.appendChild(bg);
+    chartG.appendChild(bg);
 
     // (( — )) tier guides: nested parenthesis hairlines + center dash
     const zonesG = document.createElementNS(NS, "g");
@@ -166,26 +166,15 @@
       lbl.textContent = "( (  —  ) )";
       zonesG.appendChild(lbl);
     }
-    viewport.appendChild(zonesG);
-
-    const title = document.createElementNS(NS, "text");
-    title.setAttribute("x", width / 2);
-    title.setAttribute("y", 22);
-    title.setAttribute("text-anchor", "middle");
-    title.setAttribute("fill", "#e8edf2");
-    title.setAttribute("font-size", "15");
-    title.setAttribute("font-weight", "800");
-    title.setAttribute("font-family", "system-ui,sans-serif");
-    title.textContent = "AUTONOMIC NETWORK ARCHITECTURE";
-    viewport.appendChild(title);
+    chartG.appendChild(zonesG);
 
     const edgesG = document.createElementNS(NS, "g");
     edgesG.setAttribute("id", "bobEdges");
-    viewport.appendChild(edgesG);
+    chartG.appendChild(edgesG);
 
     const nodesG = document.createElementNS(NS, "g");
     nodesG.setAttribute("id", "bobNodes");
-    viewport.appendChild(nodesG);
+    chartG.appendChild(nodesG);
 
     const edgeEls = edges.map((e) => {
       const path = document.createElementNS(NS, "path");
@@ -404,7 +393,7 @@
     }
 
     function applyViewport() {
-      viewport.setAttribute("transform", `translate(${panX},${panY}) scale(${scale})`);
+      chartG.setAttribute("transform", `translate(${panX},${panY}) scale(${scale})`);
     }
 
     function zoomAt(factor, clientX, clientY) {
