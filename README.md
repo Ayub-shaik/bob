@@ -31,17 +31,17 @@ You are open to use this, and suggest any improvements.**
 
 Bob organizes tools into **three concentric tiers**:
 
-![Concentric neural graph](diagrams/03_concentric_neural_graph.svg)
+![Concentric neural graph](diagrams/03_concentric_neural_graph.jpg)
 
 1. **Layer A — Raw drivers** (~100 slots): `rtk`, `graft`, `oxlint`, `mnemosyne`, `recordly`, `artemis`, etc.
 2. **Layer B — Subspace combos** (15): Token Diet, AST Graph, Causal Loop, Invariant Lock, Surgical Fixer, …
 3. **Core C — Kernel** (2): Contract & Loss Gate · Forensic & Causal Kernel
 
-![Switchboard wire graph](diagrams/01_switchboard_wire_graph.svg)
+![Switchboard wire graph](diagrams/01_switchboard_wire_graph.png)
 
 Peer **B↔B mesh** links propagate invariants (e.g. AST Graph ↔ Audit Pipeline) before code lands.
 
-![Combo cross-connect ring](diagrams/02_circular_ring_crossconnect.svg)
+![Combo cross-connect ring](diagrams/02_circular_ring_crossconnect.png)
 
 ---
 
@@ -206,7 +206,7 @@ bob/
 │   ├── bob.mdc               # Always-on trigger (Cursor)
 │   ├── token-diet.mdc        # Read/build log caps
 │   └── empirical-verification-invariants.mdc
-└── diagrams/                 # SVG architecture graphs
+└── diagrams/                 # Architecture graphs (PNG/JPG for README; SVG source)
 ```
 
 ---
