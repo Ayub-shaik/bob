@@ -86,7 +86,7 @@
     const bg = document.createElementNS(NS, "rect");
     bg.setAttribute("width", width);
     bg.setAttribute("height", height);
-    bg.setAttribute("fill", "#222b38");
+    bg.setAttribute("fill", "#000000");
     viewport.appendChild(bg);
 
     // Loose tier guides — suggest outer / inner / center without a rigid circle
@@ -330,12 +330,12 @@
         <div style="margin-bottom:10px"><span style="background:${badge};color:#000;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px">${esc(tier)}</span></div>
         <h4 style="margin:0 0 8px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
         <p style="margin:0 0 12px;font-size:13px;line-height:1.55;color:#cbd5e1">${esc(node.desc)}</p>
-        <div style="background:#222a36;border:1px solid #354252;border-radius:8px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#a89060;margin-bottom:6px">WHY CONNECTED</div>
-          <div style="font-size:12px;line-height:1.55;color:#d0d8e0">${esc(node.why)}</div>
+        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#8a7860;margin-bottom:6px">WHY CONNECTED</div>
+          <div style="font-size:12px;line-height:1.55;color:#b0b8c0">${esc(node.why)}</div>
         </div>
-        <div style="background:#222a36;border:1px solid #354252;border-radius:8px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#9098a8;margin-bottom:6px">INVARIANT</div>
+        <div style="background:#000;border:1px solid #1a1a1a;border-radius:4px;padding:12px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#707880;margin-bottom:6px">INVARIANT</div>
           <div style="font-size:12px;color:#e2e8f0;font-style:italic">"${esc(node.invariant)}"</div>
         </div>
         ${links}
@@ -388,10 +388,10 @@
         <button type="button" data-zoom="reset" title="Reset view">Reset</button>
       `;
       toolbar.style.cssText =
-        "position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;background:#222a36;border:1px solid #3a4858;border-radius:8px;padding:4px 8px;z-index:5";
+        "position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;background:#000;border:1px solid #1a1a1a;border-radius:6px;padding:4px 8px;z-index:5";
       toolbar.querySelectorAll("button").forEach((btn) => {
         btn.style.cssText =
-          "width:28px;height:28px;border:1px solid #3a4858;background:#1a2230;color:#d0d8e0;border-radius:6px;cursor:pointer;font-size:16px;line-height:1";
+          "width:28px;height:28px;border:1px solid #1a1a1a;background:#000;color:#b0b8c0;border-radius:4px;cursor:pointer;font-size:16px;line-height:1";
         btn.addEventListener("click", () => {
           const r = svg.getBoundingClientRect();
           const cx = r.left + r.width / 2;
@@ -414,7 +414,7 @@
 
       const hint = document.createElement("div");
       hint.style.cssText =
-        "position:absolute;bottom:10px;left:12px;font-size:10px;color:#7a8a9a;pointer-events:none";
+        "position:absolute;bottom:10px;left:12px;font-size:10px;color:#4a525a;pointer-events:none";
       hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover = thin tubelight trace · Orange = B↔B mesh";
       container.appendChild(hint);
     }
