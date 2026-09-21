@@ -5,6 +5,7 @@
 Bob is an open-source **lightweight agent skill + CLI toolkit** that supervises AI coding agents (Cursor, Claude Code, Codex, Windsurf, OpenCode, and generic MCP hosts). It enforces empirical verification, causal feedback-loop tracing, and invariant locks — so agents stop rubber-stamping shallow work and breaking unrelated code.
 > **Honestly speaking, I have the idea and orchestrated bob's creation through cursor, checked each iteration on my own other app development work, created because i was fedup with few AI agent's work even when selecting good models and given detailed prompts, tried many skills and combinations but it still does shallow work or breaks 10 things when fixing one. And also token usage was immensly increasing even with rtk, caveman, memory skills/mcp's are involved. So bob as in bob the builder, have many skills integrated and thse skills are clubbed as combos, see that in the skill architecture.
 You are open to use this, and suggest any improvements.**
+
 **Design:** Bob ships a small **core** (skill + rules + local telemetry). Heavy optional drivers (`graft`, `rtk`, `context-mode`, …) are **called when needed** via `bob-ensure <tool>` or `npx -y` — never bulk-installed at setup.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
