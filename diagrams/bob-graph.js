@@ -46,8 +46,9 @@
       return `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
     }
 
-    if (type === "ab") {
-      return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+    if (type === "ab" || type === "bc") {
+      const midX = (from.x + to.x) / 2;
+      return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`;
     }
 
     if (hub) {
@@ -84,7 +85,6 @@
     const graph = global.BOB_GRAPH_DATA.buildGraph();
     const { nodes, edges, byName, width, height, layout } = graph;
     const hub = layout || { cx: width / 2, cy: height / 2 };
-    const paren = layout?.paren;
 
     let selected = null;
     let hoverName = null;
@@ -110,63 +110,6 @@
     bg.setAttribute("height", height);
     bg.setAttribute("fill", "#000000");
     chartG.appendChild(bg);
-
-    // (( — )) tier guides: nested parenthesis hairlines + center dash
-    const zonesG = document.createElementNS(NS, "g");
-    zonesG.setAttribute("opacity", "0.45");
-
-    function parenGuidePath(cx, cy, anchor, bulge, span, side) {
-      const left = side === "left";
-      const steps = 48;
-      let d = "";
-      for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const angle = -Math.PI / 2 + t * Math.PI;
-        const bow = bulge * (1 + Math.cos(angle)) / 2;
-        const x = left ? cx - anchor - bow : cx + anchor + bow;
-        const y = cy + (span * Math.sin(angle)) / 2;
-        d += `${i === 0 ? "M" : "L"} ${x} ${y} `;
-      }
-      return d.trim();
-    }
-
-    if (paren) {
-      [
-        { spec: paren.leftOuter, side: "left", stroke: "#2a3540" },
-        { spec: paren.leftInner, side: "left", stroke: "#3a3028" },
-        { spec: paren.rightInner, side: "right", stroke: "#3a3028" },
-        { spec: paren.rightOuter, side: "right", stroke: "#2a3540" },
-      ].forEach(({ spec, side, stroke }) => {
-        const path = document.createElementNS(NS, "path");
-        path.setAttribute("d", parenGuidePath(hub.cx, hub.cy, spec.anchor, spec.bulge, spec.span, side));
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", stroke);
-        path.setAttribute("stroke-width", "1");
-        zonesG.appendChild(path);
-      });
-
-      const dash = document.createElementNS(NS, "line");
-      dash.setAttribute("x1", hub.cx - 34);
-      dash.setAttribute("y1", hub.cy);
-      dash.setAttribute("x2", hub.cx + 34);
-      dash.setAttribute("y2", hub.cy);
-      dash.setAttribute("stroke", "#3a3530");
-      dash.setAttribute("stroke-width", "1");
-      zonesG.appendChild(dash);
-
-      const lbl = document.createElementNS(NS, "text");
-      lbl.setAttribute("x", hub.cx);
-      lbl.setAttribute("y", hub.cy - 56);
-      lbl.setAttribute("text-anchor", "middle");
-      lbl.setAttribute("fill", "#3a4048");
-      lbl.setAttribute("font-size", "11");
-      lbl.setAttribute("font-weight", "600");
-      lbl.setAttribute("letter-spacing", "0.35em");
-      lbl.setAttribute("font-family", "ui-monospace,monospace");
-      lbl.textContent = "( (  —  ) )";
-      zonesG.appendChild(lbl);
-    }
-    chartG.appendChild(zonesG);
 
     const edgesG = document.createElementNS(NS, "g");
     edgesG.setAttribute("id", "bobEdges");
@@ -304,9 +247,20 @@
               : "#38bdf8"
           : null;
 
+      const focusType = focus ? byName[focus]?.type : null;
+
       edgeEls.forEach(({ edge, path }) => {
         const hit = focus && (edge.from === focus || edge.to === focus);
         const spec = STROKE[edge.type];
+
+        if (edge.type === "bb") {
+          const showMesh = focusType === "B" && hit;
+          path.setAttribute("stroke", showMesh ? spec.lit : spec.base);
+          path.setAttribute("stroke-width", String(spec.w));
+          path.setAttribute("opacity", showMesh ? "1" : "0");
+          return;
+        }
+
         if (hit && glow) {
           path.setAttribute("stroke", spec.lit);
           path.setAttribute("stroke-width", String(spec.w));
@@ -314,7 +268,7 @@
         } else {
           path.setAttribute("stroke", spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", focus ? "0.55" : "0.9");
+          path.setAttribute("opacity", focus ? "0.45" : "0.75");
         }
       });
 
@@ -452,7 +406,7 @@
       const hint = document.createElement("div");
       hint.style.cssText =
         "position:absolute;bottom:10px;left:12px;font-size:10px;color:#4a525a;pointer-events:none";
-      hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover = thin tubelight trace · Orange = B↔B mesh";
+      hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover B to see peer mesh";
       container.appendChild(hint);
     }
 

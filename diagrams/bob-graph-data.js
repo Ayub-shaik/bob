@@ -127,50 +127,75 @@
     }
   }
 
-  /**
-   * Parenthesis arc: `(` on left or `)` on right — bulges outward, opens toward center.
-   * Combos alternate in/out (back-forth) along the arc.
-   */
-  function parenArc(count, cx, cy, anchor, bulge, span, side, stagger = 34) {
-    const pts = [];
-    const left = side === "left";
-    for (let i = 0; i < count; i++) {
-      const t = count === 1 ? 0.5 : i / (count - 1);
-      const angle = -Math.PI / 2 + t * Math.PI;
-      const bow = bulge * (1 + Math.cos(angle)) / 2;
-      const depth = i % 2 === 0 ? 0 : stagger;
-      const x = (left ? cx - anchor - bow + depth : cx + anchor + bow - depth);
-      const y = cy + (span * Math.sin(angle)) / 2;
-      pts.push({ x, y, t, side, idx: i });
-    }
-    return pts;
+  /** Even Y slots in a layer band — no arc, no bleed into adjacent tiers. */
+  function bandSlots(count, cy, gap) {
+    const span = Math.max(0, (count - 1) * gap);
+    const y0 = cy - span / 2;
+    return Array.from({ length: count }, (_, i) => ({ y: y0 + i * gap }));
   }
 
   /**
-   * Drivers fan out horizontally from their combo — grow wide, stay low on Y.
-   * Each combo gets a short horizontal strip (wrap to 2 rows max if many drivers).
+   * Drivers stay in the outer A band only — vertical stack beside combo Y, never into B.
    */
-  function placeDriversHorizontal(combo, drivers, cx) {
+  function placeDriversInBand(combo, drivers, bandX, cx) {
+    const lineGap = 17;
+    const totalH = Math.max(0, (drivers.length - 1) * lineGap);
+    const subCol = drivers.length > 2 ? 48 : 0;
     const left = combo.x < cx;
-    const colW = 56;
-    const rowH = 17;
-    const cols = Math.min(4, drivers.length);
-    const rows = Math.ceil(drivers.length / cols);
-    return drivers.map((d, i) => {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
-      const rowCount = Math.min(cols, drivers.length - row * cols);
-      const xOff = (col - (rowCount - 1) / 2) * colW;
-      const yOff = (row - (rows - 1) / 2) * rowH;
-      const depth = row * 22;
-      const baseX = combo.x + (left ? -88 - depth : 88 + depth);
-      return {
-        d,
-        x: baseX + xOff,
-        y: combo.y + yOff,
-        comboName: combo.name,
-      };
+    return drivers.map((d, i) => ({
+      d,
+      x: bandX + (i % 2 === 0 ? 0 : left ? subCol : -subCol),
+      y: combo.y - totalH / 2 + i * lineGap,
+      comboName: combo.name,
+    }));
+  }
+
+  function clamp(v, lo, hi) {
+    return Math.max(lo, Math.min(v, hi));
+  }
+
+  /** Keep each tier inside its X corridor — A never crosses into B. */
+  function enforceBands(nodes, bands) {
+    nodes.forEach((n) => {
+      if (n.type === "A") {
+        if (n.x < bands.cx) n.x = clamp(n.x, bands.leftA.min, bands.leftA.max);
+        else n.x = clamp(n.x, bands.rightA.min, bands.rightA.max);
+      } else if (n.type === "B") {
+        if (n.x < bands.cx) n.x = clamp(n.x, bands.leftB.min, bands.leftB.max);
+        else n.x = clamp(n.x, bands.rightB.min, bands.rightB.max);
+      } else if (n.type === "C") {
+        n.x = clamp(n.x, bands.center.min, bands.center.max);
+      }
     });
+  }
+
+  /** Same-tier nudge — bias vertical separation so X bands stay clean. */
+  function resolveOverlapsInBand(nodes, maxIter = 60) {
+    for (let iter = 0; iter < maxIter; iter++) {
+      let moved = false;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i];
+          const b = nodes[j];
+          if (!rectsOverlap(a, b, 3)) continue;
+          const da = nodeDims(a);
+          const db = nodeDims(b);
+          const dx = b.x - a.x || 0.01;
+          const dy = b.y - a.y || 0.01;
+          const dist = Math.hypot(dx, dy) || 1;
+          const needY = (da.h + db.h) / 2 + 6 - Math.abs(dy);
+          const push = Math.max(needY, 5);
+          const px = (dx / dist) * push * 0.15;
+          const py = (dy / dist) * push * 0.85;
+          a.x -= px;
+          a.y -= py;
+          b.x += px;
+          b.y += py;
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
   }
 
   function buildGraph() {
@@ -182,22 +207,30 @@
     const height = 520;
     const cx = width / 2;
     const cy = height / 2;
+    const bands = {
+      cx,
+      leftA: { min: 48, max: 230, x: 148 },
+      leftB: { min: 300, max: 430, x: 358, xAlt: 394 },
+      center: { min: cx - 90, max: cx + 90 },
+      rightB: { min: width - 430, max: width - 300, x: width - 358, xAlt: width - 394 },
+      rightA: { min: width - 230, max: width - 48, x: width - 148 },
+    };
     const leftComboCount = 8;
     const comboGap = 22;
-    const innerAnchor = 62;
-    const innerBulge = 88;
-    const innerSpan = 300;
-    const leftInner = spreadByY(
-      parenArc(leftComboCount, cx, cy, innerAnchor, innerBulge, innerSpan, "left", 22),
-      comboGap,
-      cy
-    );
-    const rightInner = spreadByY(
-      parenArc(COMBOS.length - leftComboCount, cx, cy, innerAnchor, innerBulge, innerSpan, "right", 22),
-      comboGap,
-      cy
-    );
-    const comboPts = [...leftInner, ...rightInner];
+    const leftYs = bandSlots(leftComboCount, cy, comboGap);
+    const rightYs = bandSlots(COMBOS.length - leftComboCount, cy, comboGap);
+    const comboPts = [
+      ...leftYs.map((p, i) => ({
+        x: i % 2 === 0 ? bands.leftB.x : bands.leftB.xAlt,
+        y: p.y,
+        side: "left",
+      })),
+      ...rightYs.map((p, i) => ({
+        x: i % 2 === 0 ? bands.rightB.x : bands.rightB.xAlt,
+        y: p.y,
+        side: "right",
+      })),
+    ];
 
     COMBOS.forEach((c, j) => {
       const inboundA = DRIVERS.filter((d) => d.category === c.name).map((d) => d.name);
@@ -229,14 +262,12 @@
     });
 
     let aIdx = 0;
-    const outerAnchor = 118;
-    const outerBulge = 168;
-    const outerSpan = 320;
     const driverPts = [];
     Object.entries(driversByCombo).forEach(([comboName, list]) => {
       const combo = byName[comboName];
       if (!combo) return;
-      placeDriversHorizontal(combo, list, cx).forEach((pt) => driverPts.push(pt));
+      const bandX = combo.x < cx ? bands.leftA.x : bands.rightA.x;
+      placeDriversInBand(combo, list, bandX, cx).forEach((pt) => driverPts.push(pt));
     });
     driverPts.forEach(({ d, x, y, comboName }) => {
       aIdx += 1;
@@ -283,7 +314,11 @@
       edges.push({ from: combo.name, to: CORE[j % 2].name, type: "bc" });
     });
 
-    resolveOverlaps(nodes);
+    const aNodes = nodes.filter((n) => n.type === "A");
+    const bNodes = nodes.filter((n) => n.type === "B");
+    resolveOverlapsInBand(aNodes);
+    resolveOverlapsInBand(bNodes);
+    enforceBands(nodes, bands);
 
     return {
       nodes,
@@ -291,16 +326,7 @@
       byName,
       width,
       height,
-      layout: {
-        cx,
-        cy,
-        paren: {
-          leftOuter: { anchor: outerAnchor, bulge: outerBulge, span: outerSpan },
-          leftInner: { anchor: innerAnchor, bulge: innerBulge, span: innerSpan },
-          rightInner: { anchor: innerAnchor, bulge: innerBulge, span: innerSpan },
-          rightOuter: { anchor: outerAnchor, bulge: outerBulge, span: outerSpan },
-        },
-      },
+      layout: { cx, cy, bands },
     };
   }
 
