@@ -320,10 +320,27 @@
       }
     }
 
+    function renderCatalogSections(node) {
+      const cat = global.BobGraphCatalog?.lookup(node);
+      if (!cat) return "";
+      const p = (html) => `<p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#cbd5e1">${html}</p>`;
+      const sub = (title, html) =>
+        `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:#8a949e;margin-bottom:5px;letter-spacing:0.04em">${title}</div>${html}</div>`;
+      const repoLink = cat.repo
+        ? `<a href="${esc(cat.repo)}" target="_blank" rel="noopener" style="color:#7dd3fc;text-decoration:none;border-bottom:1px solid rgba(125,211,252,0.35)">${esc(cat.repoLabel || cat.repo)}</a>`
+        : esc(cat.repoLabel || "—");
+      return `
+        ${sub("SOURCE", p(repoLink))}
+        ${sub("WHAT", p(esc(cat.what)))}
+        ${sub("HOW", p(esc(cat.how)))}
+      `;
+    }
+
     function renderInspectorDetails(node) {
       const p = (html) => `<p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#cbd5e1">${html}</p>`;
       const sub = (title, html) =>
         `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:#8a949e;margin-bottom:5px;letter-spacing:0.04em">${title}</div>${html}</div>`;
+      const catalog = renderCatalogSections(node);
 
       if (node.type === "A") {
         const combo = node.connectedTo?.[0] || node.category || "—";
@@ -340,6 +357,7 @@
             )
           )}
           ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — enforced before any downstream combo logic runs.`))}
+          ${catalog}
         `;
       }
 
@@ -369,6 +387,7 @@
             p(`Streams invariant telemetry to <strong style="color:#e8d890">${esc(cores.join(", "))}</strong> at the core. The kernel uses this stream for pass/fail gating and forensic routing.`)
           )}
           ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — violation halts the pipeline; acceptance-review is the sole Pass authority.`))}
+          ${catalog}
         `;
       }
 
@@ -393,6 +412,7 @@
           )
         )}
         ${sub("INVARIANT", p(`<em style="color:#e2e8f0">"${esc(node.invariant)}"</em> — this is non-negotiable pipeline law; no combo or driver may override it.`))}
+        ${catalog}
       `;
     }
 
