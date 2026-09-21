@@ -62,7 +62,8 @@
 
     const graph = global.BOB_GRAPH_DATA.buildGraph();
     const { nodes, edges, byName, width, height, layout } = graph;
-    const hub = layout || { cx: width / 2, cy: height / 2, outerR: 430, innerR: 228 };
+    const hub = layout || { cx: width / 2, cy: height / 2 };
+    const paren = layout?.paren;
 
     let selected = null;
     let hoverName = null;
@@ -89,36 +90,61 @@
     bg.setAttribute("fill", "#000000");
     viewport.appendChild(bg);
 
-    // Loose tier guides — suggest outer / inner / center without a rigid circle
+    // (( — )) tier guides: nested parenthesis hairlines + center dash
     const zonesG = document.createElementNS(NS, "g");
-    zonesG.setAttribute("opacity", "0.55");
-    [
-      { rx: hub.outerR + 28, ry: (hub.outerR + 28) * 0.86, stroke: "#3d4f63", dash: "5 9", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 48 },
-      { rx: hub.innerR + 18, ry: (hub.innerR + 18) * 0.9, stroke: "#4a4038", dash: "4 7", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 16 },
-      { rx: 56, ry: 44, stroke: "#454018", dash: "3 5", label: "CENTER · KERNEL", ly: hub.cy - 48 },
-    ].forEach((z) => {
-      const e = document.createElementNS(NS, "ellipse");
-      e.setAttribute("cx", hub.cx);
-      e.setAttribute("cy", hub.cy);
-      e.setAttribute("rx", z.rx);
-      e.setAttribute("ry", z.ry);
-      e.setAttribute("fill", "none");
-      e.setAttribute("stroke", z.stroke);
-      e.setAttribute("stroke-width", "1");
-      e.setAttribute("stroke-dasharray", z.dash);
-      zonesG.appendChild(e);
-      const t = document.createElementNS(NS, "text");
-      t.setAttribute("x", hub.cx);
-      t.setAttribute("y", z.ly);
-      t.setAttribute("text-anchor", "middle");
-      t.setAttribute("fill", "#6b7c8f");
-      t.setAttribute("font-size", "10");
-      t.setAttribute("font-weight", "700");
-      t.setAttribute("letter-spacing", "0.1em");
-      t.setAttribute("font-family", "system-ui,sans-serif");
-      t.textContent = z.label;
-      zonesG.appendChild(t);
-    });
+    zonesG.setAttribute("opacity", "0.45");
+
+    function parenGuidePath(cx, cy, anchor, bulge, span, side) {
+      const left = side === "left";
+      const steps = 48;
+      let d = "";
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const angle = -Math.PI / 2 + t * Math.PI;
+        const bow = bulge * (1 + Math.cos(angle)) / 2;
+        const x = left ? cx - anchor - bow : cx + anchor + bow;
+        const y = cy + (span * Math.sin(angle)) / 2;
+        d += `${i === 0 ? "M" : "L"} ${x} ${y} `;
+      }
+      return d.trim();
+    }
+
+    if (paren) {
+      [
+        { spec: paren.leftOuter, side: "left", stroke: "#2a3540" },
+        { spec: paren.leftInner, side: "left", stroke: "#3a3028" },
+        { spec: paren.rightInner, side: "right", stroke: "#3a3028" },
+        { spec: paren.rightOuter, side: "right", stroke: "#2a3540" },
+      ].forEach(({ spec, side, stroke }) => {
+        const path = document.createElementNS(NS, "path");
+        path.setAttribute("d", parenGuidePath(hub.cx, hub.cy, spec.anchor, spec.bulge, spec.span, side));
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", stroke);
+        path.setAttribute("stroke-width", "1");
+        zonesG.appendChild(path);
+      });
+
+      const dash = document.createElementNS(NS, "line");
+      dash.setAttribute("x1", hub.cx - 34);
+      dash.setAttribute("y1", hub.cy);
+      dash.setAttribute("x2", hub.cx + 34);
+      dash.setAttribute("y2", hub.cy);
+      dash.setAttribute("stroke", "#3a3530");
+      dash.setAttribute("stroke-width", "1");
+      zonesG.appendChild(dash);
+
+      const lbl = document.createElementNS(NS, "text");
+      lbl.setAttribute("x", hub.cx);
+      lbl.setAttribute("y", hub.cy - 56);
+      lbl.setAttribute("text-anchor", "middle");
+      lbl.setAttribute("fill", "#3a4048");
+      lbl.setAttribute("font-size", "11");
+      lbl.setAttribute("font-weight", "600");
+      lbl.setAttribute("letter-spacing", "0.35em");
+      lbl.setAttribute("font-family", "ui-monospace,monospace");
+      lbl.textContent = "( (  —  ) )";
+      zonesG.appendChild(lbl);
+    }
     viewport.appendChild(zonesG);
 
     const title = document.createElementNS(NS, "text");

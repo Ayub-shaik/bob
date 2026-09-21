@@ -64,47 +64,33 @@
   /** Ring neighbor + one cross-chord — enough mesh without hairball. */
   const BB_OFFSETS = [1, 4];
 
-  /** Even ring for combos so peer links follow the inner band. */
-  function placeCombosRing(count, baseR, cx, cy) {
+  /**
+   * Parenthesis arc: `(` on left or `)` on right — bulges outward, opens toward center.
+   * Used for (( outer drivers, ( inner combos … — core … ) inner, )) outer.
+   */
+  function parenArc(count, cx, cy, anchor, bulge, span, side) {
     const pts = [];
-    for (let j = 0; j < count; j++) {
-      const angle = (j / count) * 2 * Math.PI - Math.PI / 2 + Math.sin(j * 1.9) * 0.04;
-      const r = baseR + Math.sin(j * 2.4) * 10;
-      pts.push({
-        x: cx + r * Math.cos(angle),
-        y: cy + r * Math.sin(angle) * 0.92,
-      });
-    }
-    return pts;
-  }
-
-  /** Organic scatter on a loose ring — reads circular but not a perfect circle. */
-  function scatterRing(count, baseR, cx, cy, jitter, phase, squashY) {
-    const pts = [];
+    const left = side === "left";
     for (let i = 0; i < count; i++) {
-      const golden = i * 2.399963229728653;
-      const angle = phase + golden + Math.sin(i * 1.71) * 0.22 + Math.cos(i * 0.53) * 0.08;
-      const ripple = Math.sin(i * 2.17) * jitter + Math.cos(i * 1.31) * jitter * 0.55;
-      const r = baseR + ripple + (i % 5) * (jitter * 0.12);
-      const sy = squashY + Math.sin(i * 0.91) * 0.04;
-      pts.push({
-        x: cx + r * Math.cos(angle),
-        y: cy + r * Math.sin(angle) * sy,
-      });
+      const t = count === 1 ? 0.5 : i / (count - 1);
+      const angle = -Math.PI / 2 + t * Math.PI;
+      const bow = bulge * (1 + Math.cos(angle)) / 2;
+      const x = left ? cx - anchor - bow : cx + anchor + bow;
+      const y = cy + (span * Math.sin(angle)) / 2;
+      pts.push({ x, y, t, side });
     }
     return pts;
   }
 
-  function placeDriversNearCombo(cx, cy, combo, drivers, outerR) {
-    const baseAng = Math.atan2(combo.y - cy, combo.x - cx);
-    const fan = Math.min(0.42, 0.075 * drivers.length);
+  function placeDriversOnOuterParen(combo, drivers, cx, extraBulge) {
+    const left = combo.x < cx;
+    const fan = Math.min(28, 6 + drivers.length * 3);
     return drivers.map((d, i) => {
-      const ang = baseAng + (i - (drivers.length - 1) / 2) * fan;
-      const r = outerR + (i % 2) * 10 + Math.sin(i * 2.4) * 6;
+      const spread = (i - (drivers.length - 1) / 2) * (fan / Math.max(drivers.length, 1));
       return {
         d,
-        x: cx + r * Math.cos(ang),
-        y: cy + r * Math.sin(ang) * 0.9,
+        x: combo.x + (left ? -extraBulge : extraBulge) + (left ? -1 : 1) * spread * 0.15,
+        y: combo.y + spread * 0.35,
       };
     });
   }
@@ -118,16 +104,16 @@
     const height = 1000;
     const cx = width / 2;
     const cy = height / 2 + 10;
-    const innerR = 210;
-    const outerR = 355;
-
-    const innerPts = placeCombosRing(COMBOS.length, innerR, cx, cy);
+    const leftComboCount = 8;
+    const leftInner = parenArc(leftComboCount, cx, cy, 118, 188, 620, "left");
+    const rightInner = parenArc(COMBOS.length - leftComboCount, cx, cy, 118, 188, 620, "right");
+    const comboPts = [...leftInner, ...rightInner];
 
     COMBOS.forEach((c, j) => {
       const inboundA = DRIVERS.filter((d) => d.category === c.name).map((d) => d.name);
       const peerB = BB_OFFSETS.map((off) => COMBOS[(j + off) % COMBOS.length].name);
       const coreTarget = CORE[j % 2].name;
-      const p = innerPts[j];
+      const p = comboPts[j];
       const node = {
         id: c.id,
         name: c.name,
@@ -156,7 +142,7 @@
     Object.entries(driversByCombo).forEach(([comboName, list]) => {
       const combo = byName[comboName];
       if (!combo) return;
-      placeDriversNearCombo(cx, cy, combo, list, outerR).forEach(({ d, x, y }) => {
+      placeDriversOnOuterParen(combo, list, cx, 118).forEach(({ d, x, y }) => {
         aIdx += 1;
         const node = {
           id: `A${aIdx}`,
@@ -183,8 +169,8 @@
     });
 
     const coreOffsets = [
-      { x: -22, y: -6 },
-      { x: 22, y: 6 },
+      { x: -52, y: 0 },
+      { x: 52, y: 0 },
     ];
     CORE.forEach((c, i) => {
       const node = {
@@ -212,7 +198,16 @@
       byName,
       width,
       height,
-      layout: { cx, cy, outerR, innerR },
+      layout: {
+        cx,
+        cy,
+        paren: {
+          leftOuter: { anchor: 72, bulge: 300, span: 700 },
+          leftInner: { anchor: 118, bulge: 188, span: 620 },
+          rightInner: { anchor: 118, bulge: 188, span: 620 },
+          rightOuter: { anchor: 72, bulge: 300, span: 700 },
+        },
+      },
     };
   }
 
