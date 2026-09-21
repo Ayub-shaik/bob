@@ -49,9 +49,9 @@
   }
 
   const STROKE = {
-    ab: { base: "rgba(90,120,140,0.32)", lit: "rgba(120,155,175,0.85)", w: 1 },
-    bb: { base: "rgba(140,100,75,0.34)", lit: "rgba(170,125,95,0.85)", w: 1.1 },
-    bc: { base: "rgba(130,115,70,0.36)", lit: "rgba(165,150,95,0.85)", w: 1 },
+    ab: { base: "#4a6278", lit: "#8aa4b8", w: 1 },
+    bb: { base: "#6a5448", lit: "#a08068", w: 1.1 },
+    bc: { base: "#6a6040", lit: "#a09058", w: 1 },
   };
 
   function mount(opts) {
@@ -76,19 +76,7 @@
     svg.innerHTML = "";
 
     const defs = document.createElementNS(NS, "defs");
-    defs.innerHTML = `
-      <filter id="bobGlowHot" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur stdDeviation="1.2" result="b1"/>
-        <feMerge>
-          <feMergeNode in="b1"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <linearGradient id="bobBg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#070b14"/>
-        <stop offset="100%" stop-color="#0c1220"/>
-      </linearGradient>
-    `;
+    defs.innerHTML = ``;
     svg.appendChild(defs);
 
     const viewport = document.createElementNS(NS, "g");
@@ -98,16 +86,16 @@
     const bg = document.createElementNS(NS, "rect");
     bg.setAttribute("width", width);
     bg.setAttribute("height", height);
-    bg.setAttribute("fill", "url(#bobBg)");
+    bg.setAttribute("fill", "#1a2230");
     viewport.appendChild(bg);
 
     // Loose tier guides — suggest outer / inner / center without a rigid circle
     const zonesG = document.createElementNS(NS, "g");
-    zonesG.setAttribute("opacity", "0.32");
+    zonesG.setAttribute("opacity", "0.55");
     [
-      { rx: hub.outerR + 28, ry: (hub.outerR + 28) * 0.86, stroke: "rgba(56,189,248,0.12)", dash: "6 10", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 48 },
-      { rx: hub.innerR + 18, ry: (hub.innerR + 18) * 0.9, stroke: "rgba(251,146,60,0.14)", dash: "4 8", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 16 },
-      { rx: 56, ry: 44, stroke: "rgba(250,204,21,0.16)", dash: "3 6", label: "CENTER · KERNEL", ly: hub.cy - 48 },
+      { rx: hub.outerR + 28, ry: (hub.outerR + 28) * 0.86, stroke: "#3d4f63", dash: "5 9", label: "OUTER · DRIVERS", ly: hub.cy - hub.outerR - 48 },
+      { rx: hub.innerR + 18, ry: (hub.innerR + 18) * 0.9, stroke: "#4a4038", dash: "4 7", label: "INNER · COMBOS", ly: hub.cy - hub.innerR - 16 },
+      { rx: 56, ry: 44, stroke: "#454018", dash: "3 5", label: "CENTER · KERNEL", ly: hub.cy - 48 },
     ].forEach((z) => {
       const e = document.createElementNS(NS, "ellipse");
       e.setAttribute("cx", hub.cx);
@@ -123,7 +111,7 @@
       t.setAttribute("x", hub.cx);
       t.setAttribute("y", z.ly);
       t.setAttribute("text-anchor", "middle");
-      t.setAttribute("fill", "#64748b");
+      t.setAttribute("fill", "#6b7c8f");
       t.setAttribute("font-size", "10");
       t.setAttribute("font-weight", "700");
       t.setAttribute("letter-spacing", "0.1em");
@@ -137,7 +125,7 @@
     title.setAttribute("x", width / 2);
     title.setAttribute("y", 22);
     title.setAttribute("text-anchor", "middle");
-    title.setAttribute("fill", "#f1f5f9");
+    title.setAttribute("fill", "#e8edf2");
     title.setAttribute("font-size", "15");
     title.setAttribute("font-weight", "800");
     title.setAttribute("font-family", "system-ui,sans-serif");
@@ -168,20 +156,20 @@
 
     function nodeStyle(node) {
       if (node.type === "C") {
-        return { w: 30, h: 15, fill: "rgba(28,26,20,0.88)", stroke: "rgba(130,118,75,0.5)", fs: 6.5, mono: true, sw: 0.9, text: "#a89a72" };
+        return { w: 30, h: 15, fill: "#222018", stroke: "#6a6040", fs: 6.5, mono: true, sw: 0.9, text: "#c4b890" };
       }
       if (node.type === "B") {
-        return { w: 88, h: 20, fill: "rgba(28,22,18,0.88)", stroke: "rgba(145,105,80,0.48)", fs: 7, mono: false, sw: 0.9, text: "#b8a090" };
+        return { w: 88, h: 20, fill: "#241e1a", stroke: "#6a5448", fs: 7, mono: false, sw: 0.9, text: "#c8b8a8" };
       }
       return {
         w: Math.max(node.name.length * 5.2 + 12, 54),
         h: 16,
-        fill: "rgba(14,22,30,0.88)",
-        stroke: "rgba(95,125,145,0.45)",
+        fill: "#1c2630",
+        stroke: "#4a6278",
         fs: 6.5,
         mono: true,
         sw: 0.85,
-        text: "#8fa3b0",
+        text: "#a8bcc8",
       };
     }
 
@@ -283,15 +271,13 @@
         const hit = focus && (edge.from === focus || edge.to === focus);
         const spec = STROKE[edge.type];
         if (hit && glow) {
-          path.setAttribute("stroke", spec.lit || glow);
+          path.setAttribute("stroke", spec.lit);
           path.setAttribute("stroke-width", String(spec.w));
           path.setAttribute("opacity", "1");
-          path.setAttribute("filter", "url(#bobGlowHot)");
         } else {
           path.setAttribute("stroke", spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", focus ? "0.42" : "0.62");
-          path.removeAttribute("filter");
+          path.setAttribute("opacity", focus ? "0.55" : "0.9");
         }
       });
 
@@ -344,12 +330,12 @@
         <div style="margin-bottom:10px"><span style="background:${badge};color:#000;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px">${esc(tier)}</span></div>
         <h4 style="margin:0 0 8px;font-size:18px;color:#f8fafc">${esc(node.name)}</h4>
         <p style="margin:0 0 12px;font-size:13px;line-height:1.55;color:#cbd5e1">${esc(node.desc)}</p>
-        <div style="background:rgba(15,23,42,0.7);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#fbbf24;margin-bottom:6px">WHY CONNECTED</div>
-          <div style="font-size:12px;line-height:1.55;color:#e2e8f0">${esc(node.why)}</div>
+        <div style="background:#222a36;border:1px solid #354252;border-radius:8px;padding:12px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#a89060;margin-bottom:6px">WHY CONNECTED</div>
+          <div style="font-size:12px;line-height:1.55;color:#d0d8e0">${esc(node.why)}</div>
         </div>
-        <div style="background:rgba(15,23,42,0.7);border:1px solid rgba(168,85,247,0.25);border-radius:8px;padding:12px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#c4b5fd;margin-bottom:6px">INVARIANT</div>
+        <div style="background:#222a36;border:1px solid #354252;border-radius:8px;padding:12px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#9098a8;margin-bottom:6px">INVARIANT</div>
           <div style="font-size:12px;color:#e2e8f0;font-style:italic">"${esc(node.invariant)}"</div>
         </div>
         ${links}
@@ -402,10 +388,10 @@
         <button type="button" data-zoom="reset" title="Reset view">Reset</button>
       `;
       toolbar.style.cssText =
-        "position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;background:rgba(15,23,42,0.92);border:1px solid rgba(148,163,184,0.25);border-radius:8px;padding:4px 8px;z-index:5";
+        "position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;background:#222a36;border:1px solid #3a4858;border-radius:8px;padding:4px 8px;z-index:5";
       toolbar.querySelectorAll("button").forEach((btn) => {
         btn.style.cssText =
-          "width:28px;height:28px;border:1px solid rgba(148,163,184,0.3);background:#0f172a;color:#e2e8f0;border-radius:6px;cursor:pointer;font-size:16px;line-height:1";
+          "width:28px;height:28px;border:1px solid #3a4858;background:#1a2230;color:#d0d8e0;border-radius:6px;cursor:pointer;font-size:16px;line-height:1";
         btn.addEventListener("click", () => {
           const r = svg.getBoundingClientRect();
           const cx = r.left + r.width / 2;
@@ -428,7 +414,7 @@
 
       const hint = document.createElement("div");
       hint.style.cssText =
-        "position:absolute;bottom:10px;left:12px;font-size:10px;color:rgba(148,163,184,0.75);pointer-events:none";
+        "position:absolute;bottom:10px;left:12px;font-size:10px;color:#7a8a9a;pointer-events:none";
       hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover = thin tubelight trace · Orange = B↔B mesh";
       container.appendChild(hint);
     }
