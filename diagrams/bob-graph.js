@@ -29,9 +29,9 @@
   }
 
   const STROKE = {
-    ab: { base: "rgba(56,189,248,0.35)", w: 1.4 },
-    bb: { base: "rgba(251,146,60,0.42)", w: 1.8 },
-    bc: { base: "rgba(250,204,21,0.48)", w: 1.6 },
+    ab: { base: "rgba(56,189,248,0.38)", lit: "#67e8f9", w: 1 },
+    bb: { base: "rgba(251,146,60,0.45)", lit: "#fdba74", w: 1.1 },
+    bc: { base: "rgba(250,204,21,0.5)", lit: "#fde047", w: 1 },
   };
 
   function mount(opts) {
@@ -56,9 +56,14 @@
 
     const defs = document.createElementNS(NS, "defs");
     defs.innerHTML = `
-      <filter id="bobGlow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="4" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <filter id="bobGlowHot" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="2.5" result="b1"/>
+        <feGaussianBlur in="b1" stdDeviation="5" result="b2"/>
+        <feMerge>
+          <feMergeNode in="b2"/>
+          <feMergeNode in="b1"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
       </filter>
       <linearGradient id="bobBg" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#070b14"/>
@@ -243,14 +248,14 @@
         const hit = focus && (edge.from === focus || edge.to === focus);
         const spec = STROKE[edge.type];
         if (hit && glow) {
-          path.setAttribute("stroke", glow);
-          path.setAttribute("stroke-width", edge.type === "bb" ? "4.5" : "4");
+          path.setAttribute("stroke", spec.lit || glow);
+          path.setAttribute("stroke-width", String(spec.w));
           path.setAttribute("opacity", "1");
-          path.setAttribute("filter", "url(#bobGlow)");
+          path.setAttribute("filter", "url(#bobGlowHot)");
         } else {
           path.setAttribute("stroke", spec.base);
           path.setAttribute("stroke-width", String(spec.w));
-          path.setAttribute("opacity", focus ? "0.22" : "0.75");
+          path.setAttribute("opacity", focus ? "0.3" : "0.7");
           path.removeAttribute("filter");
         }
       });
@@ -389,7 +394,7 @@
       const hint = document.createElement("div");
       hint.style.cssText =
         "position:absolute;bottom:10px;left:12px;font-size:10px;color:rgba(148,163,184,0.75);pointer-events:none";
-      hint.textContent = "Drag boxes · Ctrl+scroll zoom · Click to inspect · Orange = B↔B combo mesh";
+      hint.textContent = "Drag boxes · Ctrl+scroll zoom · Hover = thin tubelight trace · Orange = B↔B mesh";
       container.appendChild(hint);
     }
 
